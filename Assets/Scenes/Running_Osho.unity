@@ -247,27 +247,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CourseGenerator
   startPiecePrefab: {fileID: 6129873313407729305, guid: b123526abfac4904e810a850ca76b5e0, type: 3}
   middlePiecePrefabs:
-  - piecePrefab: {fileID: 3743578214999327108, guid: bf2a6d30ab786ac46aec3abe891800fa, type: 3}
+  - piecePrefab: {fileID: 7233283922573471302, guid: 1e9506526b69a0a42a2b96846a7f928a, type: 3}
     weight: 1
-  - piecePrefab: {fileID: 6887157574579714952, guid: 61dbe0124fd52e346a9045806ea0547d, type: 3}
+  - piecePrefab: {fileID: 6309412730758519969, guid: 625145348484ccb4da946e15311affec, type: 3}
     weight: 1
-  - piecePrefab: {fileID: 5119413462606319072, guid: 6deaa5b7b2d7f3c419a61ee9a3eda094, type: 3}
+  - piecePrefab: {fileID: 93084573351960865, guid: 48aa0d8b3053f4e4797c1a7fa2cee5fd, type: 3}
     weight: 1
-  - piecePrefab: {fileID: 344230663295230479, guid: 0360e5db4b810b74bab4a8dd77ec3c21, type: 3}
+  - piecePrefab: {fileID: 7939755281179259590, guid: 8874695326d010e4c9e6c08d123ddec5, type: 3}
+    weight: 100
+  - piecePrefab: {fileID: 5997305390785971127, guid: 5cc7c26ecba59434a9a2baa0d7870aa6, type: 3}
     weight: 1
-  - piecePrefab: {fileID: 8700711242005155802, guid: 97fdbcfe08a0bcf4389cfec98be8b406, type: 3}
+  - piecePrefab: {fileID: 3184250393653838055, guid: c11ea92ba3f0d6c4d945e9d3094c85ce, type: 3}
     weight: 1
-  - piecePrefab: {fileID: 2151779806299421905, guid: f44a6332a720c63459df80b67775e9b9, type: 3}
+  - piecePrefab: {fileID: 352689073150909412, guid: 52bcb9beb7ab2694abf2505b2f6a45df, type: 3}
     weight: 1
-  - piecePrefab: {fileID: 8164331152507880500, guid: b2b2c9ba988c99e48808890a6e9a6657, type: 3}
-    weight: 5
-  - piecePrefab: {fileID: 5403672312860813175, guid: ff80039f3854f844bbe6bbd8330b7fe3, type: 3}
+  - piecePrefab: {fileID: 5796620967978582256, guid: a812a23eda3c9f545a451f5260539765, type: 3}
     weight: 1
-  - piecePrefab: {fileID: 6129873313407729305, guid: b123526abfac4904e810a850ca76b5e0, type: 3}
+  - piecePrefab: {fileID: 6146061001796889223, guid: ecc01dc81304ec243a9ad6809ee19685, type: 3}
     weight: 1
   endPiecePrefab: {fileID: 6129873313407729305, guid: b123526abfac4904e810a850ca76b5e0, type: 3}
   middlePiecesCount: 100
-  followerPrefab: {fileID: 3929315328983763148, guid: fe202dcf808261a41abd05f93a3dec79, type: 3}
+  followerPrefab: {fileID: 225972626541094899, guid: ee1a88c00afb857438fee804b2b9cdf7, type: 3}
 --- !u!4 &1773808795
 Transform:
   m_ObjectHideFlags: 0
@@ -277,7 +277,7 @@ Transform:
   m_GameObject: {fileID: 1773808793}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.43199, y: -3.91033, z: -5.73648}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

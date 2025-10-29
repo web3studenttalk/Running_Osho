@@ -1,33 +1,39 @@
 // PlayerLaneController.cs
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-/// <summary>
-/// プレイヤーの左右移動を制御するスクリプト。
-/// 親オブジェクトに追従しつつ、左右の入力でレーン移動を行う。
-/// </summary>
 public class PlayerLaneController : MonoBehaviour
 {
     [Tooltip("左右に移動する速さ")]
     [SerializeField] private float laneChangeSpeed = 5.0f;
 
-    [Tooltip("中央から左右にどれだけ移動できるか（レーンの幅）")]
-    [SerializeField] private float laneWidth = 2.0f;
+    // このスクリプト内での移動範囲制限は使わないので、
+    // laneWidth変数は削除しても、残しておいても影響ありません。
+    // 分かりやすさのためにコメントアウトまたは削除します。
+    // [SerializeField] private float laneWidth = 2.0f;
 
     private float currentHorizontalPosition = 0f;
 
     void Update()
     {
-        // 1. 左右のキー入力を取得（-1.0f から 1.0f の範囲）
-        float input = Input.GetAxis("Horizontal");
+        var keyboard = Keyboard.current;
+        if (keyboard == null) return;
 
-        // 2. 入力に基づいて目標の水平位置を計算
+        bool isLeftPressed = keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed;
+        bool isRightPressed = keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed;
+        
+        float input = 0f;
+        if (isRightPressed) input = 1f;
+        else if (isLeftPressed) input = -1f;
+        
+        // 入力に基づいて水平位置を更新し続ける（制限なし）
         currentHorizontalPosition += input * laneChangeSpeed * Time.deltaTime;
 
-        // 3. 移動範囲を制限する (Clamping)
-        currentHorizontalPosition = Mathf.Clamp(currentHorizontalPosition, -laneWidth, laneWidth);
-
-        // 4. 自身のローカル座標（親オブジェクトからの相対位置）に反映
-        //    X軸方向のみ変更し、YとZは0のままにする
-        transform.localPosition = new Vector3(currentHorizontalPosition, 0, 0);
+        // YとZの位置は元のままで、X座標だけを更新
+        transform.localPosition = new Vector3(
+            currentHorizontalPosition,
+            transform.localPosition.y,
+            transform.localPosition.z
+        );
     }
 }
