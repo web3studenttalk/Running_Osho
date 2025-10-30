@@ -46,8 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f2d3ddd3d799a24aa867c4ad64605ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CourseProgressor
-  moveSpeed: 30
   rotationSmoothness: 10
+  speedChangeSmoothness: 5
 --- !u!54 &4106201205952064505
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -178,6 +178,7 @@ GameObject:
   - component: {fileID: 7017940883743400517}
   - component: {fileID: 8119398215835671804}
   - component: {fileID: 3194703860704809314}
+  - component: {fileID: 6803213750504908836}
   m_Layer: 0
   m_Name: Osho
   m_TagString: Untagged
@@ -238,6 +239,21 @@ CapsuleCollider:
   m_Height: 1.63
   m_Direction: 1
   m_Center: {x: 0, y: 0.72, z: 0}
+--- !u!114 &6803213750504908836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8444928602894280132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5117426f8f1dd46a71cdee69c7ed30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPieceData
+  pieceType: 0
+  baseSpeed: 20
+  terrainModifiers: []
 --- !u!1001 &8482556985484447073
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -119,6 +119,7 @@ MonoBehaviour:
   - {fileID: 3370773498199065330}
   - {fileID: 7190922503546238003}
   endPoint: {fileID: 1940344600750634532}
+  terrainType: 2
 --- !u!1 &4572499556473495265
 GameObject:
   m_ObjectHideFlags: 0

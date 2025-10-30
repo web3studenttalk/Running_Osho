@@ -308,3 +308,4 @@ MonoBehaviour:
   startPoint: {fileID: 8913593866082385162}
   waypoints: []
   endPoint: {fileID: 5967712737467641056}
+  terrainType: 1

@@ -113,6 +113,7 @@ MonoBehaviour:
   startPoint: {fileID: 759801856008375526}
   waypoints: []
   endPoint: {fileID: 3559951043680730794}
+  terrainType: 3
 --- !u!1001 &1813562289848439404
 PrefabInstance:
   m_ObjectHideFlags: 0
