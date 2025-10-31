@@ -248,21 +248,21 @@ MonoBehaviour:
   startPiecePrefab: {fileID: 1239260873619544226, guid: 84c28d3c6795b9b4ab19bac147abf567, type: 3}
   middlePiecePrefabs:
   - piecePrefab: {fileID: 4280240282784406742, guid: 5e12abece82d86c4da40fe8cc7a5a31a, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 7532981403811653149, guid: aa96e4e69ffcc594eabd4b65b46d8a83, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 4434331101611837083, guid: eb01ecb4e866aeb49a78833f7ef47dd7, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 2769112446758559364, guid: 45af1f6a828fbc74d8e331552dae7169, type: 3}
     weight: 1
   - piecePrefab: {fileID: 7190429424563581976, guid: ff28c30934648ca47a37833147d8c8ac, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 7707216507807145575, guid: 0af5214d182cb6f46ad86c9ab1edc625, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 8322818403318280346, guid: 9d8e7d4ec1d962c4cbc64ea65046c023, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 707616863661755411, guid: b682bfd6be923974aa9727a5fa412296, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 1239260873619544226, guid: 84c28d3c6795b9b4ab19bac147abf567, type: 3}
     weight: 1
   endPiecePrefab: {fileID: 1239260873619544226, guid: 84c28d3c6795b9b4ab19bac147abf567, type: 3}

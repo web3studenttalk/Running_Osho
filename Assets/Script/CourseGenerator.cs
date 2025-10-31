@@ -1,6 +1,6 @@
 // CourseGenerator.cs
 using System.Collections.Generic;
-using System.Linq;
+using System.Linq; // Whereメソッドなどを使うために必要
 using UnityEngine;
 
 public class CourseGenerator : MonoBehaviour
@@ -18,8 +18,6 @@ public class CourseGenerator : MonoBehaviour
 
     private Transform lastEndPoint;
     
-    // --- ▼ List<Transform> の生成ロジックを変更 ▼ ---
-
     void Start()
     {
         GenerateCourse();
@@ -35,12 +33,11 @@ public class CourseGenerator : MonoBehaviour
             return;
         }
         
-        // 最終的にプレイヤーに渡す、全ての通過点を格納するリスト
         List<Transform> fullPath = new List<Transform>();
 
         // 1. スタート部品を配置し、パス情報を取得
         GameObject startPiece = Instantiate(startPiecePrefab, transform.position, transform.rotation, this.transform);
-        AddPathPointsFromPiece(startPiece.GetComponent<TrackPiece>(), fullPath, true); // trueで始点も追加
+        AddPathPointsFromPiece(startPiece.GetComponent<TrackPiece>(), fullPath, true); 
         lastEndPoint = startPiece.GetComponent<TrackPiece>().endPoint;
 
         GameObject lastUsedPrefab = null;
@@ -48,12 +45,40 @@ public class CourseGenerator : MonoBehaviour
         // 2. 中間部品を配置し、パス情報を取得
         for (int i = 0; i < middlePiecesCount; i++)
         {
-            List<WeightedTrackPiece> availablePieces = middlePiecePrefabs.Where(p => p.piecePrefab != lastUsedPrefab).ToList();
-            if (availablePieces.Count == 0) { availablePieces = middlePiecePrefabs; }
+            // --- ▼ 連続しないロジック（ウエイトが0の部品も考慮）▼ ---
+            List<WeightedTrackPiece> availablePieces = middlePiecePrefabs
+                .Where(p => p.piecePrefab != lastUsedPrefab) // 前回使用したものを除外
+                .Where(p => p.weight > 0)                   // ウエイトが0のものも除外
+                .ToList();
 
-            GameObject nextPrefab = GetRandomWeightedPiece(availablePieces);
-            PlacePiece(nextPrefab, fullPath); // fullPathを渡す
-            lastUsedPrefab = nextPrefab;
+            // もし候補がなくなったら（例：ウエイト0以外の部品が1種類しかない）
+            if (availablePieces.Count == 0)
+            {
+                // フィルターを緩めて、ウエイトが0より大きいものから再抽選
+                availablePieces = middlePiecePrefabs.Where(p => p.weight > 0).ToList();
+                
+                // それでも候補がなければ（＝全てウエイト0）、警告を出して元のリストを使う
+                if (availablePieces.Count == 0)
+                {
+                    Debug.LogWarning("抽選可能な（ウエイトが0より大きい）部品がありません。");
+                    availablePieces = middlePiecePrefabs; 
+                }
+            }
+            
+            // --- ▲ ロジックここまで ▲ ---
+
+            GameObject nextPrefab = GetRandomWeightedPiece(availablePieces); // 修正済みの抽選メソッドを呼ぶ
+            
+            if (nextPrefab != null)
+            {
+                PlacePiece(nextPrefab, fullPath); 
+                lastUsedPrefab = nextPrefab;
+            }
+            else
+            {
+                Debug.LogError("次のプレハブの抽選に失敗しました。インスペクターの設定を確認してください。");
+                break; // ループを中断
+            }
         }
 
         // 3. ゴール部品を配置し、パス情報を取得
@@ -84,9 +109,7 @@ public class CourseGenerator : MonoBehaviour
         }
     }
     
-    // --- ▲ ここまで変更 ▲ ---
-
-    private void PlacePiece(GameObject piecePrefab, List<Transform> pathList) // pathListを受け取る
+    private void PlacePiece(GameObject piecePrefab, List<Transform> pathList) 
     {
         GameObject newPiece = Instantiate(piecePrefab, this.transform);
         TrackPiece trackPiece = newPiece.GetComponent<TrackPiece>();
@@ -106,15 +129,11 @@ public class CourseGenerator : MonoBehaviour
         Vector3 positionOffset = lastEndPoint.position - startPoint.position;
         newPiece.transform.position += positionOffset;
         
-        // 配置した部品からパス情報を取得してリストに追加
-        AddPathPointsFromPiece(trackPiece, pathList, false); // falseで始点は追加しない
+        AddPathPointsFromPiece(trackPiece, pathList, false); 
 
         lastEndPoint = trackPiece.endPoint;
     }
     
-    /// <summary>
-    /// 一つのコース部品からパス情報を抽出し、総合パスリストに追加する
-    /// </summary>
     private void AddPathPointsFromPiece(TrackPiece piece, List<Transform> pathList, bool includeStartPoint)
     {
         if (includeStartPoint)
@@ -128,17 +147,54 @@ public class CourseGenerator : MonoBehaviour
         pathList.Add(piece.endPoint);
     }
     
-    // --- GetRandomWeightedPieceメソッドは変更なし ---
+    /// <summary>
+    /// ウエイト付きリストから、重みを考慮してランダムにプレハブを1つ選んで返す
+    /// （ウエイトが0の部品は抽選から除外するよう修正）
+    /// </summary>
     private GameObject GetRandomWeightedPiece(List<WeightedTrackPiece> pieces)
     {
-        int totalWeight = 0;
-        foreach (var piece in pieces) { totalWeight += piece.weight; }
-        int randomPoint = Random.Range(0, totalWeight);
-        foreach (var piece in pieces)
+        // 1. ウエイトが0より大きい、抽選対象となる部品だけのリストを新しく作成
+        var availableWeightedPieces = pieces.Where(p => p.weight > 0).ToList();
+
+        // 2. もし抽選可能な部品が一つもなかったら
+        if (availableWeightedPieces.Count == 0)
         {
-            if (randomPoint < piece.weight) { return piece.piecePrefab; }
-            else { randomPoint -= piece.weight; }
+            // 渡された元のリストが空でなければ、警告を出して「ウエイト0」の部品から先頭のものを返す
+            if (pieces.Count > 0)
+            {
+                Debug.LogWarning("GetRandomWeightedPiece: 抽選可能な（ウエイトが0より大きい）部品がありません。ウエイト0の部品を返します。");
+                return pieces.First().piecePrefab;
+            }
+            
+            // 渡されたリスト自体が空なら、致命的なエラー
+            Debug.LogError("GetRandomWeightedPiece: 抽選リストが空です！ CourseGeneratorのインスペクターを確認してください。");
+            return null;
         }
-        return pieces.First().piecePrefab;
+        
+        // 3. 抽選可能な部品だけで合計ウエイトを計算
+        int totalWeight = 0;
+        foreach (var piece in availableWeightedPieces)
+        {
+            totalWeight += piece.weight;
+        }
+        
+        // 4. 0から合計ウエイトまでの範囲でランダムな数値を決める
+        int randomPoint = Random.Range(0, totalWeight);
+
+        // 5. 抽選可能なリストから、当選する部品を選ぶ
+        foreach (var piece in availableWeightedPieces)
+        {
+            if (randomPoint < piece.weight)
+            {
+                return piece.piecePrefab;
+            }
+            else
+            {
+                randomPoint -= piece.weight;
+            }
+        }
+        
+        // 6. 万が一のフォールバック
+        return availableWeightedPieces.First().piecePrefab;
     }
 }
