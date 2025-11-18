@@ -7,7 +7,7 @@ public class CourseProgressor : MonoBehaviour
 {
     [Header("走行設定")]
     [SerializeField] private float rotationSmoothness = 10.0f;
-    [Tooltip("速度が変化する時の滑らかさ（値が小さいほどゆっくり変化）")]
+    [Tooltip("速度が変化する時の滑らかさ")]
     [SerializeField] private float speedChangeSmoothness = 5.0f;
 
     private List<Transform> pathPoints;
@@ -17,10 +17,8 @@ public class CourseProgressor : MonoBehaviour
     private PlayerPieceData pieceData;
     private TrackPiece lastCheckedPiece = null;
     
-    // --- ▼ 速度管理の変数を変更 ▼ ---
-    private float currentMoveSpeed; // 現在の（滑らかに変化中の）速度
-    private float targetMoveSpeed;  // 駒が指示する目標速度
-    // --- ▲ 変更ここまで ▲ ---
+    private float currentMoveSpeed; 
+    private float targetMoveSpeed;  
 
     void Awake()
     {
@@ -28,19 +26,39 @@ public class CourseProgressor : MonoBehaviour
         rb.isKinematic = false;
         rb.useGravity = false;
         
+        // 初期化時は子要素から探す（念のため）
         pieceData = GetComponentInChildren<PlayerPieceData>();
         
+        if (pieceData != null)
+        {
+            currentMoveSpeed = pieceData.baseSpeed;
+            targetMoveSpeed = pieceData.baseSpeed;
+        }
+    }
+
+    // --- ▼ 修正箇所：新しい駒を直接受け取り、状態をリセットするメソッド ▼ ---
+    public void RefreshPieceData(PlayerPieceData newPieceData)
+    {
+        // 1. 新しい駒のデータを登録
+        pieceData = newPieceData;
+
         if (pieceData == null)
         {
-            Debug.LogError("PlayerRigの子オブジェクトにPlayerPieceDataが見つかりません！");
+            Debug.LogError("新しい駒のデータがnullです！");
             enabled = false;
-            return;
         }
-        
-        // スタート時の速度を駒の基本速度に設定
-        currentMoveSpeed = pieceData.baseSpeed;
-        targetMoveSpeed = pieceData.baseSpeed;
+        else
+        {
+            // 2. 「最後に確認した地形」情報をリセット
+            // これにより、FixedUpdateで「地形が変わった！」と判定され、
+            // 即座に新しい駒の能力で速度が再計算されます。
+            lastCheckedPiece = null;
+            
+            // 3. スクリプトを有効化して再開
+            enabled = true;
+        }
     }
+    // --- ▲ 修正ここまで ▲ ---
 
     public void SetCourse(List<Transform> fullPath)
     {
@@ -55,35 +73,36 @@ public class CourseProgressor : MonoBehaviour
     {
         if (pathPoints == null) return;
 
-        // --- ▼ 速度計算ロジックを変更 ▼ ---
-
-        // 1. 現在のインデックスから、今いるTrackPieceを取得
+        // 1. 現在のTrackPieceを取得
         int p1_index = Mathf.FloorToInt(currentPathProgress);
+        // エラー回避：インデックスが範囲外なら処理しない
+        if (p1_index >= pathPoints.Count) return;
+
         TrackPiece currentPiece = pathPoints[p1_index].GetComponentInParent<TrackPiece>();
 
-        // 2. 新しい区間に入ったら、駒に「目標速度」を問い合わせる
+        // 2. 地形チェック（lastCheckedPieceをnullにしたので、切り替え直後は必ず実行される）
         if (currentPiece != null && currentPiece != lastCheckedPiece)
         {
-            // 目標速度(targetMoveSpeed)を更新
-            targetMoveSpeed = pieceData.GetCurrentSpeed(currentPiece.terrainType);
+            // 新しい駒に「この地形での速度」を問い合わせて更新
+            if (pieceData != null)
+            {
+                targetMoveSpeed = pieceData.GetCurrentSpeed(currentPiece.terrainType);
+            }
             lastCheckedPiece = currentPiece;
         }
 
-        // 3. 「現在の速度」を「目標速度」に向かって滑らかに変化させる
-        currentMoveSpeed = Mathf.Lerp(
-            currentMoveSpeed, 
-            targetMoveSpeed, 
-            Time.fixedDeltaTime * speedChangeSmoothness
-        );
+        // 3. 速度の更新
+        currentMoveSpeed = Mathf.Lerp(currentMoveSpeed, targetMoveSpeed, Time.fixedDeltaTime * speedChangeSmoothness);
         
-        // --- 速度蓄積防止ロジック（変更なし） ---
+        // 4. 移動処理
         Vector3 targetPosition = GetPointOnSpline(currentPathProgress);
         Vector3 desiredVelocity = (targetPosition - rb.position) / Time.fixedDeltaTime;
+        
+        // ブロック判定
         float actualSpeed = rb.linearVelocity.magnitude;
         float desiredSpeed = desiredVelocity.magnitude;
         bool isBlocked = (desiredSpeed > 1.0f && actualSpeed < desiredSpeed * 0.5f);
 
-        // 4. ブロックされていなければ、滑らかに変化させた「現在の速度」で進捗を進める
         if (!isBlocked)
         {
             int p2_index = p1_index + 1;
@@ -95,13 +114,13 @@ public class CourseProgressor : MonoBehaviour
             Vector3 p1 = pathPoints[p1_index].position;
             Vector3 p2 = pathPoints[p2_index].position;
             float segmentLength = Vector3.Distance(p1, p2);
-            // 速度の計算に targetMoveSpeed ではなく currentMoveSpeed を使用
+            
             float progressIncrement = (segmentLength > 0.001f) ? (currentMoveSpeed * Time.fixedDeltaTime) / segmentLength : 0f;
             currentPathProgress += progressIncrement;
         }
         
-        // --- 物理・回転ロジック（変更なし） ---
         rb.linearVelocity = desiredVelocity; 
+
         if (!isBlocked)
         {
             Vector3 lookDirection = GetPointOnSpline(currentPathProgress + 0.1f) - rb.position;
@@ -113,7 +132,6 @@ public class CourseProgressor : MonoBehaviour
         }
     }
 
-    // --- GetPointOnSpline メソッド（変更なし） ---
     private Vector3 GetPointOnSpline(float progress)
     {
         int p0_index = Mathf.FloorToInt(progress) - 1;

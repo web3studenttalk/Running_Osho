@@ -1,17 +1,13 @@
 // PlayerPieceData.cs
 using UnityEngine;
-using System.Collections.Generic; // ListとDictionaryを使うために必要
-
-// --- 他スクリプトからも参照されるenum定義 ---
-// （TrackPiece.csにも定義がある場合、重複しないよう管理が必要ですが、
-//   PlayerPieceData.csで一括管理するのが簡単です）
+using System.Collections.Generic;
 
 /// <summary>
-/// 地形のタイプ（TrackPiece.csと共通で使用）
+/// 地形のタイプ
 /// </summary>
 public enum TerrainType
 {
-    Normal,     // 通常（デフォルト）
+    Normal,     // 通常
     Straight,   // 直線
     Curve,      // カーブ
     SlopeUp,    // 上り坂
@@ -19,21 +15,22 @@ public enum TerrainType
 }
 
 /// <summary>
-/// 駒の種類（識別用）
+/// 駒の種類（指定された8種類）
 /// </summary>
 public enum PieceType
 {
-    Osho,     // 王将
-    Kinsho,   // 金将
     Hisha,    // 飛車
-    Fuhyo     // 歩兵（デフォルト）
+    Kyosha,   // 香車
+    Kakugyo,  // 角行
+    Kinsho,   // 金将
+    Ginsho,   // 銀将
+    Keima,    // 桂馬
+    Fuhyo,    // 歩兵
+    Osho      // 王将
 }
 
-// --- ここからが新しい定義です ---
-
 /// <summary>
-/// 「地形」と「速度倍率」をペアにするためのデータクラス。
-/// [System.Serializable]を付けることで、インスペクターに表示されます。
+/// 「地形」と「速度倍率」をペアにするためのデータクラス
 /// </summary>
 [System.Serializable]
 public class TerrainModifier
@@ -45,20 +42,21 @@ public class TerrainModifier
     public float speedMultiplier = 1.0f;
 }
 
-// --- PlayerPieceData本体の改造 ---
-
 /// <summary>
-/// プレイヤーの駒（モデル）にアタッチし、
-/// 駒の固有の性能と、地形ごとの「速度補正リスト」を定義する。
+/// プレイヤーの駒（モデル）にアタッチするデータクラス
 /// </summary>
 public class PlayerPieceData : MonoBehaviour
 {
     [Header("駒の基本設定")]
-    [Tooltip("この駒の種類（主に識別のために使用）")]
+    [Tooltip("この駒の種類")]
     public PieceType pieceType = PieceType.Fuhyo;
 
     [Tooltip("この駒の基本となる移動速度")]
     public float baseSpeed = 5.0f;
+
+    [Header("UI表示用")]
+    [Tooltip("この駒に対応するボタン画像（アイコン）")]
+    public Sprite pieceIcon;
 
     [Header("地形ごとの速度補正リスト")]
     [Tooltip("この駒が特定の地形に入った時の速度倍率を自由に設定します。")]
@@ -69,7 +67,7 @@ public class PlayerPieceData : MonoBehaviour
 
     void Awake()
     {
-        // ゲーム開始時に、インスペクターで設定したリストを高速な辞書（マップ）に変換する
+        // リストを辞書に変換して検索を高速化
         modifierMap = new Dictionary<TerrainType, float>();
         if (terrainModifiers != null)
         {
@@ -84,23 +82,17 @@ public class PlayerPieceData : MonoBehaviour
     }
 
     /// <summary>
-    /// CourseProgressor（土台）から呼び出される関数。
-    /// 現在の地形を受け取り、この駒が出すべき速度を計算して返す。
+    /// 現在の地形に応じた速度を計算して返す
     /// </summary>
     public float GetCurrentSpeed(TerrainType currentTerrain)
     {
-        float multiplier;
-
-        // マップ（辞書）に現在の地形用の設定があるか検索
-        if (modifierMap.TryGetValue(currentTerrain, out multiplier))
+        if (modifierMap.TryGetValue(currentTerrain, out float multiplier))
         {
-            // 設定が見つかった場合
             return baseSpeed * multiplier;
         }
         else
         {
-            // 設定が見つからない場合（Normal地形や未設定の地形）
-            return baseSpeed; // 基本速度をそのまま返す
+            return baseSpeed;
         }
     }
 }
