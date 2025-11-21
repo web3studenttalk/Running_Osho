@@ -1484,7 +1484,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPieceData
   pieceType: 7
-  baseSpeed: 30
+  baseSpeed: 50
   pieceIcon: {fileID: 21300000, guid: 1163c5d2cf47cbb4a921f645434be0d4, type: 3}
   terrainModifiers: []
 --- !u!136 &8287439688978714111

@@ -17,8 +17,8 @@ public class CourseProgressor : MonoBehaviour
     private PlayerPieceData pieceData;
     private TrackPiece lastCheckedPiece = null;
     
-    private float currentMoveSpeed; 
-    private float targetMoveSpeed;  
+    private float currentMoveSpeed = 0f; 
+    private float targetMoveSpeed = 0f;  
 
     void Awake()
     {
@@ -26,20 +26,12 @@ public class CourseProgressor : MonoBehaviour
         rb.isKinematic = false;
         rb.useGravity = false;
         
-        // 初期化時は子要素から探す（念のため）
-        pieceData = GetComponentInChildren<PlayerPieceData>();
-        
-        if (pieceData != null)
-        {
-            currentMoveSpeed = pieceData.baseSpeed;
-            targetMoveSpeed = pieceData.baseSpeed;
-        }
+        // 初期化時は何もしない（PieceDeckManagerからの登録を待つ）
     }
 
-    // --- ▼ 修正箇所：新しい駒を直接受け取り、状態をリセットするメソッド ▼ ---
+    // --- ▼ 修正箇所：速度を即座に適用する ▼ ---
     public void RefreshPieceData(PlayerPieceData newPieceData)
     {
-        // 1. 新しい駒のデータを登録
         pieceData = newPieceData;
 
         if (pieceData == null)
@@ -49,12 +41,14 @@ public class CourseProgressor : MonoBehaviour
         }
         else
         {
-            // 2. 「最後に確認した地形」情報をリセット
-            // これにより、FixedUpdateで「地形が変わった！」と判定され、
-            // 即座に新しい駒の能力で速度が再計算されます。
+            // 地形情報をリセット
             lastCheckedPiece = null;
             
-            // 3. スクリプトを有効化して再開
+            // 【重要】切り替え直後は、現在の速度も目標速度も、新しい駒の基本速度に強制一致させる
+            // これにより「速度0」の状態や「前の駒の速度」を引きずらず、即座に走り出す
+            currentMoveSpeed = pieceData.baseSpeed;
+            targetMoveSpeed = pieceData.baseSpeed;
+            
             enabled = true;
         }
     }
@@ -71,37 +65,41 @@ public class CourseProgressor : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (pathPoints == null) return;
+        if (pathPoints == null || pieceData == null) return;
 
-        // 1. 現在のTrackPieceを取得
+        // 1. 現在のTrackPieceを取得して、目標速度を更新
         int p1_index = Mathf.FloorToInt(currentPathProgress);
-        // エラー回避：インデックスが範囲外なら処理しない
         if (p1_index >= pathPoints.Count) return;
 
         TrackPiece currentPiece = pathPoints[p1_index].GetComponentInParent<TrackPiece>();
 
-        // 2. 地形チェック（lastCheckedPieceをnullにしたので、切り替え直後は必ず実行される）
         if (currentPiece != null && currentPiece != lastCheckedPiece)
         {
-            // 新しい駒に「この地形での速度」を問い合わせて更新
-            if (pieceData != null)
-            {
-                targetMoveSpeed = pieceData.GetCurrentSpeed(currentPiece.terrainType);
-            }
+            targetMoveSpeed = pieceData.GetCurrentSpeed(currentPiece.terrainType);
             lastCheckedPiece = currentPiece;
         }
 
-        // 3. 速度の更新
+        // 2. 速度の更新
         currentMoveSpeed = Mathf.Lerp(currentMoveSpeed, targetMoveSpeed, Time.fixedDeltaTime * speedChangeSmoothness);
         
-        // 4. 移動処理
+        // 3. 移動処理
         Vector3 targetPosition = GetPointOnSpline(currentPathProgress);
         Vector3 desiredVelocity = (targetPosition - rb.position) / Time.fixedDeltaTime;
         
-        // ブロック判定
+        // --- ▼ 修正箇所：スタート時の強制発進ロジック ▼ ---
         float actualSpeed = rb.linearVelocity.magnitude;
         float desiredSpeed = desiredVelocity.magnitude;
+        
+        // 基本は「動きたいのに動けない」ならブロックとみなす
         bool isBlocked = (desiredSpeed > 1.0f && actualSpeed < desiredSpeed * 0.5f);
+
+        // 【重要】ただし、スタート直後（進捗が1.0未満）は絶対にブロック判定しない
+        // これにより、停止状態から確実に動き出せるようにする
+        if (currentPathProgress < 1.0f)
+        {
+            isBlocked = false;
+        }
+        // --- ▲ 修正ここまで ▲ ---
 
         if (!isBlocked)
         {
@@ -115,10 +113,13 @@ public class CourseProgressor : MonoBehaviour
             Vector3 p2 = pathPoints[p2_index].position;
             float segmentLength = Vector3.Distance(p1, p2);
             
+            // currentMoveSpeedが0だと進まないので、最低値を保証するガードを入れても良いが
+            // RefreshPieceDataでの初期化で対応済み
             float progressIncrement = (segmentLength > 0.001f) ? (currentMoveSpeed * Time.fixedDeltaTime) / segmentLength : 0f;
             currentPathProgress += progressIncrement;
         }
         
+        // Y軸の速度もそのまま適用（坂道対応）
         rb.linearVelocity = desiredVelocity; 
 
         if (!isBlocked)

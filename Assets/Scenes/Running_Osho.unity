@@ -169,7 +169,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 149552632}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1333,7 +1333,7 @@ MonoBehaviour:
     weight: 1
   endPiecePrefab: {fileID: 1239260873619544226, guid: 84c28d3c6795b9b4ab19bac147abf567, type: 3}
   middlePiecesCount: 1000
-  followerPrefab: {fileID: 8210841395059999510, guid: 8f9caa2467cb4434c93aed7867eb4e7c, type: 3}
+  scenePlayerRig: {fileID: 1408957846444505524}
 --- !u!4 &1773808795
 Transform:
   m_ObjectHideFlags: 0
@@ -1550,8 +1550,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6004695169752475047}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1565,7 +1565,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6004695169752475047}
   serializedVersion: 5
-  m_Mass: 0.0000001
+  m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -1610,5 +1610,5 @@ SceneRoots:
   - {fileID: 1773808795}
   - {fileID: 597414556}
   - {fileID: 1861034116}
-  - {fileID: 149552634}
   - {fileID: 1865839522033105952}
+  - {fileID: 149552634}
