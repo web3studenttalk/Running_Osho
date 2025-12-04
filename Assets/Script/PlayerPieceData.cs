@@ -3,19 +3,22 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// 地形のタイプ
+/// 地形のタイプ（更新版）
 /// </summary>
 public enum TerrainType
 {
-    Normal,     // 通常
-    Straight,   // 直線
-    Curve,      // カーブ
-    SlopeUp,    // 上り坂
-    SlopeDown   // 下り坂
+    Normal,      // 設定なし（デフォルト）
+    Straight,    // 直線
+    BigCurve,    // 大カーブ
+    SCurve,      // S字カーブ
+    SlopeUp,     // 上り坂
+    SlopeDown,   // 下り坂
+    Narrow,      // 狭窄（道幅が狭い）
+    Obstacle     // 障害物
 }
 
 /// <summary>
-/// 駒の種類（指定された8種類）
+/// 駒の種類
 /// </summary>
 public enum PieceType
 {
@@ -29,9 +32,6 @@ public enum PieceType
     Osho      // 王将
 }
 
-/// <summary>
-/// 「地形」と「速度倍率」をペアにするためのデータクラス
-/// </summary>
 [System.Serializable]
 public class TerrainModifier
 {
@@ -42,9 +42,6 @@ public class TerrainModifier
     public float speedMultiplier = 1.0f;
 }
 
-/// <summary>
-/// プレイヤーの駒（モデル）にアタッチするデータクラス
-/// </summary>
 public class PlayerPieceData : MonoBehaviour
 {
     [Header("駒の基本設定")]
@@ -62,12 +59,10 @@ public class PlayerPieceData : MonoBehaviour
     [Tooltip("この駒が特定の地形に入った時の速度倍率を自由に設定します。")]
     public List<TerrainModifier> terrainModifiers;
     
-    // 検索を高速化するための内部辞書
     private Dictionary<TerrainType, float> modifierMap;
 
     void Awake()
     {
-        // リストを辞書に変換して検索を高速化
         modifierMap = new Dictionary<TerrainType, float>();
         if (terrainModifiers != null)
         {
@@ -81,9 +76,6 @@ public class PlayerPieceData : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 現在の地形に応じた速度を計算して返す
-    /// </summary>
     public float GetCurrentSpeed(TerrainType currentTerrain)
     {
         if (modifierMap.TryGetValue(currentTerrain, out float multiplier))
