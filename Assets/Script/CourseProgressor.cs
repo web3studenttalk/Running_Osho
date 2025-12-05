@@ -7,29 +7,43 @@ public class CourseProgressor : MonoBehaviour
 {
     [Header("走行設定")]
     [SerializeField] private float rotationSmoothness = 10.0f;
-    [Tooltip("速度が変化する時の滑らかさ")]
     [SerializeField] private float speedChangeSmoothness = 5.0f;
 
     private List<Transform> pathPoints;
     private float currentPathProgress = 0.0f;
     private Rigidbody rb;
     
-    private PlayerPieceData pieceData;
+    private PlayerPieceData pieceData; // 現在のコマのデータ
     private TrackPiece lastCheckedPiece = null;
     
     private float currentMoveSpeed = 0f; 
     private float targetMoveSpeed = 0f;  
+    private float itemSpeedMultiplier = 1.0f; 
+
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        itemSpeedMultiplier = multiplier;
+    }
+
+    // --- ▼ 追加：コマのマテリアル変更を中継するメソッド ▼ ---
+    public void PromotePiece()
+    {
+        if (pieceData != null) pieceData.Promote();
+    }
+
+    public void DemotePiece()
+    {
+        if (pieceData != null) pieceData.Demote();
+    }
+    // --- ▲ ここまで ▲ ---
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         rb.isKinematic = false;
         rb.useGravity = false;
-        
-        // 初期化時は何もしない（PieceDeckManagerからの登録を待つ）
     }
 
-    // --- ▼ 修正箇所：速度を即座に適用する ▼ ---
     public void RefreshPieceData(PlayerPieceData newPieceData)
     {
         pieceData = newPieceData;
@@ -41,33 +55,23 @@ public class CourseProgressor : MonoBehaviour
         }
         else
         {
-            // 地形情報をリセット
             lastCheckedPiece = null;
-            
-            // 【重要】切り替え直後は、現在の速度も目標速度も、新しい駒の基本速度に強制一致させる
-            // これにより「速度0」の状態や「前の駒の速度」を引きずらず、即座に走り出す
             currentMoveSpeed = pieceData.baseSpeed;
             targetMoveSpeed = pieceData.baseSpeed;
-            
             enabled = true;
         }
     }
-    // --- ▲ 修正ここまで ▲ ---
 
     public void SetCourse(List<Transform> fullPath)
     {
         pathPoints = fullPath;
-        if (pathPoints == null || pathPoints.Count < 2)
-        {
-            enabled = false;
-        }
+        if (pathPoints == null || pathPoints.Count < 2) enabled = false;
     }
 
     void FixedUpdate()
     {
         if (pathPoints == null || pieceData == null) return;
 
-        // 1. 現在のTrackPieceを取得して、目標速度を更新
         int p1_index = Mathf.FloorToInt(currentPathProgress);
         if (p1_index >= pathPoints.Count) return;
 
@@ -79,27 +83,16 @@ public class CourseProgressor : MonoBehaviour
             lastCheckedPiece = currentPiece;
         }
 
-        // 2. 速度の更新
         currentMoveSpeed = Mathf.Lerp(currentMoveSpeed, targetMoveSpeed, Time.fixedDeltaTime * speedChangeSmoothness);
-        
-        // 3. 移動処理
+        float finalSpeed = currentMoveSpeed * itemSpeedMultiplier;
+
         Vector3 targetPosition = GetPointOnSpline(currentPathProgress);
         Vector3 desiredVelocity = (targetPosition - rb.position) / Time.fixedDeltaTime;
         
-        // --- ▼ 修正箇所：スタート時の強制発進ロジック ▼ ---
         float actualSpeed = rb.linearVelocity.magnitude;
         float desiredSpeed = desiredVelocity.magnitude;
-        
-        // 基本は「動きたいのに動けない」ならブロックとみなす
         bool isBlocked = (desiredSpeed > 1.0f && actualSpeed < desiredSpeed * 0.5f);
-
-        // 【重要】ただし、スタート直後（進捗が1.0未満）は絶対にブロック判定しない
-        // これにより、停止状態から確実に動き出せるようにする
-        if (currentPathProgress < 1.0f)
-        {
-            isBlocked = false;
-        }
-        // --- ▲ 修正ここまで ▲ ---
+        if (currentPathProgress < 1.0f) isBlocked = false;
 
         if (!isBlocked)
         {
@@ -112,14 +105,10 @@ public class CourseProgressor : MonoBehaviour
             Vector3 p1 = pathPoints[p1_index].position;
             Vector3 p2 = pathPoints[p2_index].position;
             float segmentLength = Vector3.Distance(p1, p2);
-            
-            // currentMoveSpeedが0だと進まないので、最低値を保証するガードを入れても良いが
-            // RefreshPieceDataでの初期化で対応済み
-            float progressIncrement = (segmentLength > 0.001f) ? (currentMoveSpeed * Time.fixedDeltaTime) / segmentLength : 0f;
+            float progressIncrement = (segmentLength > 0.001f) ? (finalSpeed * Time.fixedDeltaTime) / segmentLength : 0f;
             currentPathProgress += progressIncrement;
         }
         
-        // Y軸の速度もそのまま適用（坂道対応）
         rb.linearVelocity = desiredVelocity; 
 
         if (!isBlocked)

@@ -2865,15 +2865,18 @@ MonoBehaviour:
   pieceType: 1
   baseSpeed: 30
   pieceIcon: {fileID: 21300000, guid: 9ca10792c8b2b6241bbf12ef000e2ab1, type: 3}
+  normalMaterial: {fileID: 2100000, guid: f2491f0b4007d754b93da4a29f952ba5, type: 2}
+  promotedMaterial: {fileID: 2100000, guid: 3a61cccabab241242b40189dc9d5abf5, type: 2}
+  targetRenderer: {fileID: 1386936975360058165}
   terrainModifiers:
   - terrainType: 1
-    speedMultiplier: 60
+    speedMultiplier: 30
   - terrainType: 2
     speedMultiplier: 15
   - terrainType: 4
     speedMultiplier: 45
   - terrainType: 5
-    speedMultiplier: 60
+    speedMultiplier: 30
 --- !u!136 &7502197667972022600
 CapsuleCollider:
   m_ObjectHideFlags: 0

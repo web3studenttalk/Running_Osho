@@ -3235,6 +3235,9 @@ MonoBehaviour:
   pieceType: 6
   baseSpeed: 15
   pieceIcon: {fileID: 21300000, guid: 12d72ea22da4f4541b8451ead110bbcf, type: 3}
+  normalMaterial: {fileID: 2100000, guid: 9146a38e24c2c8b4aa9aa2c02a9c9311, type: 2}
+  promotedMaterial: {fileID: 2100000, guid: 63090828dc4b20b428fe2a79fadea293, type: 2}
+  targetRenderer: {fileID: 7632520293229124734}
   terrainModifiers: []
 --- !u!136 &7774914727227971695
 CapsuleCollider:

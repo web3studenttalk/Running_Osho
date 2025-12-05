@@ -222,6 +222,9 @@ MonoBehaviour:
   pieceType: 4
   baseSpeed: 30
   pieceIcon: {fileID: 21300000, guid: 92d9fc7d1a527ad489d47dcc5ae5a43b, type: 3}
+  normalMaterial: {fileID: 2100000, guid: ed4ab7694e6a0734eb5f9748b9fbbf0c, type: 2}
+  promotedMaterial: {fileID: 2100000, guid: b0797bf707a8142409246837eaa2fa9c, type: 2}
+  targetRenderer: {fileID: 7507334646896774237}
   terrainModifiers:
   - terrainType: 2
     speedMultiplier: 45
