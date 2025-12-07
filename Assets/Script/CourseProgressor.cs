@@ -13,29 +13,23 @@ public class CourseProgressor : MonoBehaviour
     private float currentPathProgress = 0.0f;
     private Rigidbody rb;
     
-    private PlayerPieceData pieceData; // 現在のコマのデータ
+    private PlayerPieceData pieceData;
     private TrackPiece lastCheckedPiece = null;
     
     private float currentMoveSpeed = 0f; 
     private float targetMoveSpeed = 0f;  
     private float itemSpeedMultiplier = 1.0f; 
 
+    // --- ゴールしたかどうかのフラグ ---
+    private bool hasFinished = false;
+
     public void SetSpeedMultiplier(float multiplier)
     {
         itemSpeedMultiplier = multiplier;
     }
 
-    // --- ▼ 追加：コマのマテリアル変更を中継するメソッド ▼ ---
-    public void PromotePiece()
-    {
-        if (pieceData != null) pieceData.Promote();
-    }
-
-    public void DemotePiece()
-    {
-        if (pieceData != null) pieceData.Demote();
-    }
-    // --- ▲ ここまで ▲ ---
+    public void PromotePiece() { if (pieceData != null) pieceData.Promote(); }
+    public void DemotePiece() { if (pieceData != null) pieceData.Demote(); }
 
     void Awake()
     {
@@ -47,18 +41,16 @@ public class CourseProgressor : MonoBehaviour
     public void RefreshPieceData(PlayerPieceData newPieceData)
     {
         pieceData = newPieceData;
-
-        if (pieceData == null)
-        {
-            Debug.LogError("新しい駒のデータがnullです！");
-            enabled = false;
-        }
-        else
+        if (pieceData != null)
         {
             lastCheckedPiece = null;
             currentMoveSpeed = pieceData.baseSpeed;
             targetMoveSpeed = pieceData.baseSpeed;
             enabled = true;
+        }
+        else
+        {
+            enabled = false;
         }
     }
 
@@ -70,19 +62,38 @@ public class CourseProgressor : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (pathPoints == null || pieceData == null) return;
+        // 準備ができていない、または既にゴール済みなら動かない
+        if (pathPoints == null || pieceData == null || hasFinished) return;
 
+        // --- ▼ 修正：レース中でなければ動かない（スタート待ち） ▼ ---
+        if (RaceGameManager.Instance != null && !RaceGameManager.Instance.IsRacing())
+        {
+            // まだレースが始まっていないなら、速度を0にして待機
+            rb.linearVelocity = Vector3.zero;
+            return; 
+        }
+        // --- ▲ ここまで ▲ ---
+
+        // 1. 目標速度の更新
         int p1_index = Mathf.FloorToInt(currentPathProgress);
-        if (p1_index >= pathPoints.Count) return;
+        
+        // --- ▼ 修正：ゴール判定 ▼ ---
+        // パスの最後の点に到達したらゴール
+        if (p1_index >= pathPoints.Count - 1)
+        {
+            FinishRace();
+            return;
+        }
+        // --- ▲ ここまで ▲ ---
 
         TrackPiece currentPiece = pathPoints[p1_index].GetComponentInParent<TrackPiece>();
-
         if (currentPiece != null && currentPiece != lastCheckedPiece)
         {
             targetMoveSpeed = pieceData.GetCurrentSpeed(currentPiece.terrainType);
             lastCheckedPiece = currentPiece;
         }
 
+        // 2. 移動処理
         currentMoveSpeed = Mathf.Lerp(currentMoveSpeed, targetMoveSpeed, Time.fixedDeltaTime * speedChangeSmoothness);
         float finalSpeed = currentMoveSpeed * itemSpeedMultiplier;
 
@@ -97,11 +108,6 @@ public class CourseProgressor : MonoBehaviour
         if (!isBlocked)
         {
             int p2_index = p1_index + 1;
-            if (p2_index >= pathPoints.Count)
-            {
-                enabled = false;
-                return;
-            }
             Vector3 p1 = pathPoints[p1_index].position;
             Vector3 p2 = pathPoints[p2_index].position;
             float segmentLength = Vector3.Distance(p1, p2);
@@ -119,6 +125,22 @@ public class CourseProgressor : MonoBehaviour
                 Quaternion targetRotation = Quaternion.LookRotation(new Vector3(lookDirection.x, 0, lookDirection.z));
                 rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSmoothness * Time.fixedDeltaTime));
             }
+        }
+    }
+
+    /// <summary>
+    /// ゴール時の処理
+    /// </summary>
+    private void FinishRace()
+    {
+        hasFinished = true;
+        rb.linearVelocity = Vector3.zero; // 完全停止
+        rb.isKinematic = true;      // 物理演算も停止
+
+        // マネージャーにゴールを報告
+        if (RaceGameManager.Instance != null)
+        {
+            RaceGameManager.Instance.OnGoal();
         }
     }
 

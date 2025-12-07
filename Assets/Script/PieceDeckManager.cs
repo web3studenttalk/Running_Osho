@@ -8,13 +8,20 @@ public class PieceDeckManager : MonoBehaviour
     [SerializeField] private GameObject playerRig;
 
     [Header("駒のプレハブ設定")]
-    [Tooltip("抽選される駒のプレハブ全種類")]
+    [Tooltip("ランダム抽選される駒のリスト（飛車、角行、金、銀、桂、香、歩など。※王将は入れない）")]
     [SerializeField] private List<GameObject> piecePool;
 
+    [Tooltip("王将のプレハブ（固定用）")]
+    [SerializeField] private GameObject oshoPrefab; // ← 追加
+
     [Header("UI設定")]
+    [Tooltip("画面中央下の5つのボタン（ランダム枠）")]
     [SerializeField] private List<PieceSelectButton> deckButtons;
 
-    // 現在表示されているコマのインスタンスを保存しておく変数
+    [Tooltip("画面右の王将専用ボタン")]
+    [SerializeField] private PieceSelectButton oshoButton; // ← 追加
+
+    // 現在表示されているコマのインスタンス
     private GameObject currentPieceInstance;
 
     void Start()
@@ -24,36 +31,43 @@ public class PieceDeckManager : MonoBehaviour
 
     private void InitializeDeck()
     {
-        if (piecePool == null || piecePool.Count == 0) return;
-
-        for (int i = 0; i < deckButtons.Count; i++)
+        // 1. 中央の5つのボタンをランダムに設定
+        if (piecePool != null && piecePool.Count > 0)
         {
-            GameObject selectedPrefab = piecePool[Random.Range(0, piecePool.Count)];
-            deckButtons[i].Setup(selectedPrefab, this);
+            for (int i = 0; i < deckButtons.Count; i++)
+            {
+                GameObject selectedPrefab = piecePool[Random.Range(0, piecePool.Count)];
+                deckButtons[i].Setup(selectedPrefab, this);
 
-            if (i == 0) SpawnPiece(selectedPrefab);
+                // ゲーム開始時は、一番左の駒でスタート
+                if (i == 0) SpawnPiece(selectedPrefab);
+            }
+        }
+
+        // 2. 右の王将ボタンを設定（固定）
+        if (oshoButton != null && oshoPrefab != null)
+        {
+            oshoButton.Setup(oshoPrefab, this);
         }
     }
 
-    // --- ▼ 修正箇所：古いコマを確実に消すロジック ▼ ---
+    // コマを生成して切り替える（変更なし）
     public void SpawnPiece(GameObject prefabToSpawn)
     {
         if (playerRig == null || prefabToSpawn == null) return;
 
-        // 1. 以前に生成したコマが残っていれば、即座に無効化して削除予約する
+        // 古いコマを消す（即時非表示＋削除）
         if (currentPieceInstance != null)
         {
-            currentPieceInstance.SetActive(false); // これで瞬時に見えなくなります
-            Destroy(currentPieceInstance);         // その後、メモリから削除
+            currentPieceInstance.SetActive(false);
+            Destroy(currentPieceInstance);
         }
 
-        // 念のため、PlayerRigの下にある他の不要な子要素も掃除する（初回起動時などのゴミ掃除）
-        // ただし、今作ったばかりの currentPieceInstance は消さないように注意
+        // 念のための掃除
         int childCount = playerRig.transform.childCount;
         for (int i = childCount - 1; i >= 0; i--)
         {
             GameObject child = playerRig.transform.GetChild(i).gameObject;
-            // 以前の変な残骸があれば消す（念入りな掃除）
             if (child != currentPieceInstance && child.activeSelf) 
             {
                 child.SetActive(false);
@@ -61,20 +75,17 @@ public class PieceDeckManager : MonoBehaviour
             }
         }
 
-        // 2. 新しいコマを生成
+        // 新しいコマを生成
         currentPieceInstance = Instantiate(prefabToSpawn, playerRig.transform);
         currentPieceInstance.transform.localPosition = Vector3.zero;
         currentPieceInstance.transform.localRotation = Quaternion.identity;
 
-        // 3. 新しいコマからデータを取得
+        // データ更新
         PlayerPieceData newData = currentPieceInstance.GetComponent<PlayerPieceData>();
-
-        // 4. 土台に「この新しいデータを使って！」と直接渡す
         CourseProgressor progressor = playerRig.GetComponent<CourseProgressor>();
         if (progressor != null)
         {
             progressor.RefreshPieceData(newData);
         }
     }
-    // --- ▲ 修正ここまで ▲ ---
 }
