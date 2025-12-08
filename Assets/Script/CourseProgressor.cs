@@ -19,17 +19,11 @@ public class CourseProgressor : MonoBehaviour
     private float currentMoveSpeed = 0f; 
     private float targetMoveSpeed = 0f;  
     private float itemSpeedMultiplier = 1.0f; 
-
-    // --- ゴールしたかどうかのフラグ ---
     private bool hasFinished = false;
 
-    public void SetSpeedMultiplier(float multiplier)
-    {
-        itemSpeedMultiplier = multiplier;
-    }
-
-    public void PromotePiece() { if (pieceData != null) pieceData.Promote(); }
-    public void DemotePiece() { if (pieceData != null) pieceData.Demote(); }
+    public void SetSpeedMultiplier(float multiplier) { itemSpeedMultiplier = multiplier; }
+    public void PromotePiece() { if (pieceData != null) { pieceData.Promote(); RecalculateSpeed(); } }
+    public void DemotePiece() { if (pieceData != null) { pieceData.Demote(); RecalculateSpeed(); } }
 
     void Awake()
     {
@@ -41,11 +35,14 @@ public class CourseProgressor : MonoBehaviour
     public void RefreshPieceData(PlayerPieceData newPieceData)
     {
         pieceData = newPieceData;
+
         if (pieceData != null)
         {
             lastCheckedPiece = null;
-            currentMoveSpeed = pieceData.baseSpeed;
-            targetMoveSpeed = pieceData.baseSpeed;
+            // 初期速度の計算（地形がない場合はNormalとして計算）
+            float startSpeed = pieceData.GetCurrentSpeed(TerrainType.Normal);
+            currentMoveSpeed = startSpeed;
+            targetMoveSpeed = startSpeed;
             enabled = true;
         }
         else
@@ -62,29 +59,20 @@ public class CourseProgressor : MonoBehaviour
 
     void FixedUpdate()
     {
-        // 準備ができていない、または既にゴール済みなら動かない
         if (pathPoints == null || pieceData == null || hasFinished) return;
 
-        // --- ▼ 修正：レース中でなければ動かない（スタート待ち） ▼ ---
         if (RaceGameManager.Instance != null && !RaceGameManager.Instance.IsRacing())
         {
-            // まだレースが始まっていないなら、速度を0にして待機
             rb.linearVelocity = Vector3.zero;
             return; 
         }
-        // --- ▲ ここまで ▲ ---
 
-        // 1. 目標速度の更新
         int p1_index = Mathf.FloorToInt(currentPathProgress);
-        
-        // --- ▼ 修正：ゴール判定 ▼ ---
-        // パスの最後の点に到達したらゴール
         if (p1_index >= pathPoints.Count - 1)
         {
             FinishRace();
             return;
         }
-        // --- ▲ ここまで ▲ ---
 
         TrackPiece currentPiece = pathPoints[p1_index].GetComponentInParent<TrackPiece>();
         if (currentPiece != null && currentPiece != lastCheckedPiece)
@@ -93,7 +81,6 @@ public class CourseProgressor : MonoBehaviour
             lastCheckedPiece = currentPiece;
         }
 
-        // 2. 移動処理
         currentMoveSpeed = Mathf.Lerp(currentMoveSpeed, targetMoveSpeed, Time.fixedDeltaTime * speedChangeSmoothness);
         float finalSpeed = currentMoveSpeed * itemSpeedMultiplier;
 
@@ -128,20 +115,23 @@ public class CourseProgressor : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ゴール時の処理
-    /// </summary>
+    private void RecalculateSpeed()
+    {
+        if (pathPoints == null || pieceData == null) return;
+        int index = Mathf.FloorToInt(currentPathProgress);
+        if (index < pathPoints.Count)
+        {
+            TrackPiece piece = pathPoints[index].GetComponentInParent<TrackPiece>();
+            if (piece != null) targetMoveSpeed = pieceData.GetCurrentSpeed(piece.terrainType);
+        }
+    }
+
     private void FinishRace()
     {
         hasFinished = true;
-        rb.linearVelocity = Vector3.zero; // 完全停止
-        rb.isKinematic = true;      // 物理演算も停止
-
-        // マネージャーにゴールを報告
-        if (RaceGameManager.Instance != null)
-        {
-            RaceGameManager.Instance.OnGoal();
-        }
+        rb.linearVelocity = Vector3.zero;
+        rb.isKinematic = true;
+        if (RaceGameManager.Instance != null) RaceGameManager.Instance.OnGoal();
     }
 
     private Vector3 GetPointOnSpline(float progress)

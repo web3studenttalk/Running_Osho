@@ -1,48 +1,69 @@
 // PieceSelectButton.cs
 using UnityEngine;
-using UnityEngine.UI; // Imageを扱うために必要
+using UnityEngine.UI;
 
 public class PieceSelectButton : MonoBehaviour
 {
     [Header("UI参照")]
-    [Tooltip("アイコンを表示するImageコンポーネント")]
+    [Tooltip("アイコンを表示するImageコンポーネント（設定必須！）")]
     [SerializeField] private Image iconImage; 
 
     private GameObject myPiecePrefab; 
     private PieceDeckManager manager; 
 
-    /// <summary>
-    /// Managerから呼び出され、このボタンの画像を設定する
-    /// </summary>
+    // セットアップ処理（ここでエラーが起きると、ボタンが動かなくなります）
     public void Setup(GameObject piecePrefab, PieceDeckManager deckManager)
     {
         myPiecePrefab = piecePrefab;
         manager = deckManager;
 
-        // 駒からPlayerPieceDataを取得して、画像を設定する
+        // 安全チェック：プレハブが空なら何もしない
+        if (piecePrefab == null)
+        {
+            Debug.LogError($"ボタン {gameObject.name} に空のプレハブが渡されました！");
+            return;
+        }
+
+        // 安全チェック：Imageが設定されていなければ警告を出して、処理を続ける
+        if (iconImage == null)
+        {
+            Debug.LogError($"【設定忘れ】ボタン {gameObject.name} の 'Icon Image' が設定されていません！Inspectorを確認してください。");
+            // 画像設定はスキップするが、Managerの登録は完了させる
+            return;
+        }
+
+        // 画像の設定
         PlayerPieceData data = piecePrefab.GetComponent<PlayerPieceData>();
-        
         if (data != null && data.pieceIcon != null)
         {
-            // 駒に設定されているアイコン画像をボタンに反映
             iconImage.sprite = data.pieceIcon;
-            
-            // 画像が透けていたり見えなくなっている場合のために有効化
             iconImage.enabled = true;
         }
         else
         {
-            // 画像が設定されていない場合のエラー回避（白紙にするなど）
-            Debug.LogWarning($"プレハブ {piecePrefab.name} にアイコン画像が設定されていません");
+            // 画像がない場合は白くするなどで対応
+            Debug.LogWarning($"プレハブ {piecePrefab.name} にアイコン画像がありません。");
+            iconImage.enabled = false;
         }
+        
+        Debug.Log($"ボタン {gameObject.name} のセットアップ完了！割り当て: {piecePrefab.name}");
     }
 
-    // クリック時の処理（変更なし）
     public void OnClickButton()
     {
-        if (manager != null && myPiecePrefab != null)
+        if (manager == null)
         {
-            manager.SpawnPiece(myPiecePrefab);
+            Debug.LogError($"エラー：ボタン {gameObject.name} のManagerが設定されていません。Setupが失敗している可能性があります。");
+            return;
         }
+
+        if (myPiecePrefab == null)
+        {
+            Debug.LogError($"エラー：ボタン {gameObject.name} にプレハブが割り当てられていません。");
+            return;
+        }
+
+        Debug.Log("コマ切り替え実行: " + myPiecePrefab.name);
+        manager.SpawnPiece(myPiecePrefab);
     }
 }

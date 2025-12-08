@@ -3,10 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public enum ItemType
-{
-    None, Totsugeki, Nari, Kakoi, Kokaku
-}
+public enum ItemType { None, Totsugeki, Nari, Kakoi, Kokaku }
 
 public class ItemManager : MonoBehaviour
 {
@@ -23,7 +20,7 @@ public class ItemManager : MonoBehaviour
     [SerializeField] private Sprite iconNone;
 
     private ItemType currentItem = ItemType.None;
-    private Coroutine currentEffectCoroutine = null; // 現在実行中の効果コルーチン
+    private Coroutine currentEffectCoroutine = null;
 
     void Start()
     {
@@ -42,57 +39,51 @@ public class ItemManager : MonoBehaviour
     {
         if (currentItem == ItemType.None) return;
 
-        // 前の効果がまだ続いていたらキャンセルする（重複防止）
         if (currentEffectCoroutine != null)
         {
             StopCoroutine(currentEffectCoroutine);
-            ResetAllEffects(); // 全ての効果をリセット
+            ResetAllEffects();
         }
 
-        // 新しい効果を開始
         currentEffectCoroutine = StartCoroutine(ApplyItemEffect(currentItem));
 
         currentItem = ItemType.None;
         UpdateUI();
     }
 
-    // 効果終了時などに呼ばれ、全てのステータスを元に戻す
     private void ResetAllEffects()
     {
         playerProgressor.SetSpeedMultiplier(1.0f);
-        playerProgressor.DemotePiece(); // 見た目を元に戻す
-        // 他の効果（無敵など）があればここでも解除する
+        playerProgressor.DemotePiece(); 
     }
 
     private IEnumerator ApplyItemEffect(ItemType type)
     {
         switch (type)
         {
-            case ItemType.Totsugeki: // 突撃：3秒間、速度2倍
+            case ItemType.Totsugeki: // 突撃：3秒間、速度2倍（アイテム倍率で対応）
                 playerProgressor.SetSpeedMultiplier(2.0f);
                 yield return new WaitForSeconds(3.0f);
                 break;
 
-            // --- ▼ 修正：「成り」の効果実装 ▼ ---
-            case ItemType.Nari: // 成り：5秒間、速度1.5倍 ＋ 見た目変更
-                playerProgressor.SetSpeedMultiplier(1.5f);
-                playerProgressor.PromotePiece(); // 見た目を「成り」にする
+            case ItemType.Nari: // 成り：5秒間
+                // ▼ 修正：速度の強制変更(SetSpeedMultiplier)を削除しました
+                // コマ側で設定された PromotedSpeedMultiplier が適用されます
+                playerProgressor.PromotePiece(); 
                 yield return new WaitForSeconds(5.0f);
                 break;
-            // --- ▲ ここまで ▲ ---
 
-            case ItemType.Kakoi: // 囲い（仮）：5秒間ちょっと加速
+            case ItemType.Kakoi: // 囲い：5秒間
                 playerProgressor.SetSpeedMultiplier(1.2f);
                 yield return new WaitForSeconds(5.0f);
                 break;
 
-            case ItemType.Kokaku: // 降格：3秒間速度半分
+            case ItemType.Kokaku: // 降格：3秒間
                 playerProgressor.SetSpeedMultiplier(0.5f);
                 yield return new WaitForSeconds(3.0f);
                 break;
         }
 
-        // 効果時間が終了したらリセット処理を呼ぶ
         ResetAllEffects();
         currentEffectCoroutine = null;
     }

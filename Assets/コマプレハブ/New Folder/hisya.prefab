@@ -911,20 +911,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPieceData
   pieceType: 0
-  baseSpeed: 30
-  pieceIcon: {fileID: 21300000, guid: 3ce9dcfd35e33d3478884074fff927aa, type: 3}
+  speedRatio: 1
+  promotedSpeedMultiplier: 1.2
   normalMaterial: {fileID: 2100000, guid: af519a25de0ed8d4eb6af0a32c0d0e68, type: 2}
   promotedMaterial: {fileID: 2100000, guid: be7b436020c004d4cac357859ad6999e, type: 2}
   targetRenderer: {fileID: 5087197042466374836}
+  pieceIcon: {fileID: 21300000, guid: 3ce9dcfd35e33d3478884074fff927aa, type: 3}
   terrainModifiers:
   - terrainType: 1
-    speedMultiplier: 30
+    speedMultiplier: 2
   - terrainType: 3
-    speedMultiplier: 45
+    speedMultiplier: 1.5
   - terrainType: 4
-    speedMultiplier: 30
+    speedMultiplier: 2
   - terrainType: 7
-    speedMultiplier: 45
+    speedMultiplier: 1.5
+  promotedTerrainModifiers: []
 --- !u!136 &4824558052720382137
 CapsuleCollider:
   m_ObjectHideFlags: 0

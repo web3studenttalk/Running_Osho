@@ -8,82 +8,84 @@ public class PieceDeckManager : MonoBehaviour
     [SerializeField] private GameObject playerRig;
 
     [Header("駒のプレハブ設定")]
-    [Tooltip("ランダム抽選される駒のリスト（飛車、角行、金、銀、桂、香、歩など。※王将は入れない）")]
     [SerializeField] private List<GameObject> piecePool;
-
-    [Tooltip("王将のプレハブ（固定用）")]
-    [SerializeField] private GameObject oshoPrefab; // ← 追加
+    [SerializeField] private GameObject oshoPrefab;
 
     [Header("UI設定")]
-    [Tooltip("画面中央下の5つのボタン（ランダム枠）")]
     [SerializeField] private List<PieceSelectButton> deckButtons;
-
-    [Tooltip("画面右の王将専用ボタン")]
-    [SerializeField] private PieceSelectButton oshoButton; // ← 追加
-
-    // 現在表示されているコマのインスタンス
-    private GameObject currentPieceInstance;
+    [SerializeField] private PieceSelectButton oshoButton;
 
     void Start()
     {
+        Debug.Log("PieceDeckManager: 初期化を開始します...");
         InitializeDeck();
+        Debug.Log("PieceDeckManager: 初期化が完了しました！");
     }
 
     private void InitializeDeck()
     {
-        // 1. 中央の5つのボタンをランダムに設定
+        // 1. 中央5つのボタン設定
         if (piecePool != null && piecePool.Count > 0)
         {
             for (int i = 0; i < deckButtons.Count; i++)
             {
+                if (deckButtons[i] == null)
+                {
+                    Debug.LogError($"エラー：Deck Buttonsの {i}番目 が空欄です！Inspectorを確認してください。");
+                    continue;
+                }
+
                 GameObject selectedPrefab = piecePool[Random.Range(0, piecePool.Count)];
+                
+                // ボタンのセットアップを呼び出す
                 deckButtons[i].Setup(selectedPrefab, this);
 
-                // ゲーム開始時は、一番左の駒でスタート
+                // 最初は左端のコマでスタート
                 if (i == 0) SpawnPiece(selectedPrefab);
             }
         }
+        else
+        {
+            Debug.LogError("エラー：Piece Pool（駒リスト）が空っぽです！");
+        }
 
-        // 2. 右の王将ボタンを設定（固定）
+        // 2. 王将ボタン設定
         if (oshoButton != null && oshoPrefab != null)
         {
             oshoButton.Setup(oshoPrefab, this);
         }
+        else
+        {
+            if (oshoButton == null) Debug.LogError("エラー：Osho Buttonが設定されていません！");
+            if (oshoPrefab == null) Debug.LogError("エラー：Osho Prefabが設定されていません！");
+        }
     }
 
-    // コマを生成して切り替える（変更なし）
     public void SpawnPiece(GameObject prefabToSpawn)
     {
-        if (playerRig == null || prefabToSpawn == null) return;
-
-        // 古いコマを消す（即時非表示＋削除）
-        if (currentPieceInstance != null)
+        if (playerRig == null || prefabToSpawn == null)
         {
-            currentPieceInstance.SetActive(false);
-            Destroy(currentPieceInstance);
+            Debug.LogError("SpawnPieceエラー: PlayerRig または Prefab がnullです");
+            return;
         }
 
-        // 念のための掃除
-        int childCount = playerRig.transform.childCount;
-        for (int i = childCount - 1; i >= 0; i--)
+        // 子要素を全削除
+        foreach (Transform child in playerRig.transform)
         {
-            GameObject child = playerRig.transform.GetChild(i).gameObject;
-            if (child != currentPieceInstance && child.activeSelf) 
-            {
-                child.SetActive(false);
-                Destroy(child);
-            }
+            child.gameObject.SetActive(false);
+            Destroy(child.gameObject);
         }
 
-        // 新しいコマを生成
-        currentPieceInstance = Instantiate(prefabToSpawn, playerRig.transform);
-        currentPieceInstance.transform.localPosition = Vector3.zero;
-        currentPieceInstance.transform.localRotation = Quaternion.identity;
+        // 生成
+        GameObject newPiece = Instantiate(prefabToSpawn, playerRig.transform);
+        newPiece.transform.localPosition = Vector3.zero;
+        newPiece.transform.localRotation = Quaternion.identity;
 
-        // データ更新
-        PlayerPieceData newData = currentPieceInstance.GetComponent<PlayerPieceData>();
+        // データ渡し
+        PlayerPieceData newData = newPiece.GetComponent<PlayerPieceData>();
         CourseProgressor progressor = playerRig.GetComponent<CourseProgressor>();
-        if (progressor != null)
+        
+        if (progressor != null && newData != null)
         {
             progressor.RefreshPieceData(newData);
         }
