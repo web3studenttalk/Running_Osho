@@ -27,7 +27,6 @@ public class RaceGameManager : MonoBehaviour
     void Start()
     {
         if (goalTextObj != null) goalTextObj.SetActive(false);
-        if (startButtonObj != null) startButtonObj.SetActive(true);
         UpdateTimerUI();
     }
 
