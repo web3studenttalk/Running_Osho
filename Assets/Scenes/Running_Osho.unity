@@ -293,6 +293,8 @@ MonoBehaviour:
   - {fileID: 8477918743701324182, guid: b74da10575223ee4db3693e03384cb52, type: 3}
   - {fileID: 6996355324036059353, guid: af907d191ccc0894888cf25f43766a04, type: 3}
   - {fileID: 933993593193170677, guid: c7fbd2c22548e2a49928a0910b79925b, type: 3}
+  - {fileID: 6499294462972002315, guid: 503d36fd5c49c3242a5502ec76aa762c, type: 3}
+  - {fileID: 6587641409447812512, guid: 1958f70198974a54d9776dacd83a3499, type: 3}
   oshoPrefab: {fileID: 5398993006351047125, guid: 8f9caa2467cb4434c93aed7867eb4e7c, type: 3}
   deckButtons:
   - {fileID: 164304574}
@@ -2047,7 +2049,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 0e52c9732ff6df743995900d3b137ed5, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.2
+  m_Volume: 0.072
   m_Pitch: 1
   Loop: 0
   Mute: 0
