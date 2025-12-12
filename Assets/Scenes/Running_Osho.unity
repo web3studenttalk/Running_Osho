@@ -1655,6 +1655,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1039394419}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
 --- !u!114 &863067916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2019,6 +2031,98 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PieceSelectButton
   iconImage: {fileID: 925925650}
+--- !u!1 &1039394419
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1039394423}
+  - component: {fileID: 1039394422}
+  - component: {fileID: 1039394421}
+  - component: {fileID: 1039394420}
+  m_Layer: 0
+  m_Name: NPCRig
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &1039394420
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039394419}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77d1a8205d9585041ac4dd3978b3566e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NPCBrain
+  piecePool:
+  - {fileID: 5398993006351047125, guid: 8f9caa2467cb4434c93aed7867eb4e7c, type: 3}
+  - {fileID: 6996355324036059353, guid: af907d191ccc0894888cf25f43766a04, type: 3}
+  - {fileID: 933993593193170677, guid: c7fbd2c22548e2a49928a0910b79925b, type: 3}
+  - {fileID: 6587641409447812512, guid: 1958f70198974a54d9776dacd83a3499, type: 3}
+--- !u!54 &1039394421
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039394419}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 112
+  m_CollisionDetection: 1
+--- !u!114 &1039394422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039394419}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f2d3ddd3d799a24aa867c4ad64605ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CourseProgressor
+  rotationSmoothness: 10
+  speedChangeSmoothness: 5
+--- !u!4 &1039394423
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039394419}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1162657532
 GameObject:
   m_ObjectHideFlags: 0
@@ -2935,7 +3039,9 @@ MonoBehaviour:
     weight: 1
   endPiecePrefab: {fileID: 1239260873619544226, guid: 84c28d3c6795b9b4ab19bac147abf567, type: 3}
   middlePiecesCount: 30
-  scenePlayerRig: {fileID: 1408957846444505524}
+  playerRig: {fileID: 1408957846444505524}
+  npcRigs:
+  - {fileID: 1039394422}
 --- !u!4 &1773808795
 Transform:
   m_ObjectHideFlags: 0
@@ -3460,8 +3566,9 @@ SceneRoots:
   - {fileID: 1773808795}
   - {fileID: 597414556}
   - {fileID: 1861034116}
-  - {fileID: 1865839522033105952}
   - {fileID: 149552634}
   - {fileID: 1162657534}
   - {fileID: 224967470}
   - {fileID: 1277470884}
+  - {fileID: 1865839522033105952}
+  - {fileID: 1039394423}
