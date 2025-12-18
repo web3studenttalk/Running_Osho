@@ -1794,7 +1794,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7987686741995417992}
-  - component: {fileID: 6010297128214308653}
   - component: {fileID: 5227846898917086246}
   - component: {fileID: 8287439688978714111}
   m_Layer: 0
@@ -1813,27 +1812,14 @@ Transform:
   m_GameObject: {fileID: 5398993006351047125}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.59053, y: 3.66263, z: -2.15839}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2002009344600783986}
+  - {fileID: 1983266329354185160}
   - {fileID: 4877621025924876681}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6010297128214308653
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5398993006351047125}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66d3e32d9e8eac8449b3f53fec121930, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerLaneController
-  laneChangeSpeed: 5
 --- !u!114 &5227846898917086246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1942,7 +1928,7 @@ Transform:
   - {fileID: 7876370820824152780}
   m_Father: {fileID: 4539662681074915607}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &5770273196861985319
+--- !u!1 &5669163215258388791
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1950,9 +1936,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2002009344600783986}
-  - component: {fileID: 4328863292040146997}
-  - component: {fileID: 5500897394490980957}
+  - component: {fileID: 1983266329354185160}
+  - component: {fileID: 3020898910697074230}
+  - component: {fileID: 9085688419753903897}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -1960,13 +1946,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2002009344600783986
+--- !u!4 &1983266329354185160
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5770273196861985319}
+  m_GameObject: {fileID: 5669163215258388791}
   serializedVersion: 2
   m_LocalRotation: {x: 0.11703904, y: -0, z: -0, w: 0.9931274}
   m_LocalPosition: {x: 0, y: 2.5900002, z: -5.21}
@@ -1975,13 +1961,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7987686741995417992}
   m_LocalEulerAnglesHint: {x: 13.443, y: 0, z: 0}
---- !u!20 &4328863292040146997
+--- !u!20 &3020898910697074230
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5770273196861985319}
+  m_GameObject: {fileID: 5669163215258388791}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
@@ -2026,13 +2012,13 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &5500897394490980957
+--- !u!81 &9085688419753903897
 AudioListener:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5770273196861985319}
+  m_GameObject: {fileID: 5669163215258388791}
   m_Enabled: 1
 --- !u!1 &5985975829994506150
 GameObject:

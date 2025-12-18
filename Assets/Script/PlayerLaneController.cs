@@ -4,36 +4,66 @@ using UnityEngine.InputSystem;
 
 public class PlayerLaneController : MonoBehaviour
 {
-    [Tooltip("左右に移動する速さ")]
-    [SerializeField] private float laneChangeSpeed = 5.0f;
+    [Header("移動設定")]
+    [Tooltip("移動スピード")]
+    [SerializeField] private float moveSpeed = 5.0f;
 
-    // このスクリプト内での移動範囲制限は使わないので、
-    // laneWidth変数は削除しても、残しておいても影響ありません。
-    // 分かりやすさのためにコメントアウトまたは削除します。
-    // [SerializeField] private float laneWidth = 2.0f;
-
-    private float currentHorizontalPosition = 0f;
+    // 操作する対象（現在のコマ）
+    private Transform currentPiece;
 
     void Update()
     {
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return;
+        // 1. 操作するコマを見つける
+        if (currentPiece == null)
+        {
+            FindCurrentPiece();
+            if (currentPiece == null) return;
+        }
 
-        bool isLeftPressed = keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed;
-        bool isRightPressed = keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed;
-        
-        float input = 0f;
-        if (isRightPressed) input = 1f;
-        else if (isLeftPressed) input = -1f;
-        
-        // 入力に基づいて水平位置を更新し続ける（制限なし）
-        currentHorizontalPosition += input * laneChangeSpeed * Time.deltaTime;
+        // 2. 入力と移動処理
+        // 以前のような「目標地点(currentX)」の計算をやめ、
+        // 入力があったらその分だけ直接座標を動かします。
+        // これなら壁があっても数値が蓄積せず、すぐに逆方向へ戻れます。
+        HandleMovement();
+    }
 
-        // YとZの位置は元のままで、X座標だけを更新
-        transform.localPosition = new Vector3(
-            currentHorizontalPosition,
-            transform.localPosition.y,
-            transform.localPosition.z
-        );
+    private void FindCurrentPiece()
+    {
+        var pieceData = GetComponentInChildren<PlayerPieceData>();
+        if (pieceData != null)
+        {
+            currentPiece = pieceData.transform;
+        }
+    }
+
+    private void HandleMovement()
+    {
+        if (Keyboard.current == null) return;
+
+        float inputDirection = 0f;
+
+        // 左入力
+        if (Keyboard.current.leftArrowKey.isPressed || Keyboard.current.aKey.isPressed)
+        {
+            inputDirection = -1f;
+        }
+        // 右入力
+        else if (Keyboard.current.rightArrowKey.isPressed || Keyboard.current.dKey.isPressed)
+        {
+            inputDirection = 1f;
+        }
+
+        // 入力がある時だけ動かす
+        if (inputDirection != 0f)
+        {
+            Vector3 localPos = currentPiece.localPosition;
+            
+            // 現在の位置に対して、スピード分を加算する
+            float moveAmount = inputDirection * moveSpeed * Time.deltaTime;
+            localPos.x += moveAmount;
+
+            // ※ここに制限(Clamp)がないため、壁があるまで無限に動けます
+            currentPiece.localPosition = localPos;
+        }
     }
 }
