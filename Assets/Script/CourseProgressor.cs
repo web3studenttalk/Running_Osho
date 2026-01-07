@@ -148,4 +148,15 @@ public class CourseProgressor : MonoBehaviour
         Vector3 position = 0.5f * ((2f * p1) + (-p0 + p2) * t + (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t + (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t);
         return position;
     }
+    /// <summary>
+    /// 現在走行中の地形タイプを返す（NPC用）
+    /// </summary>
+    public TerrainType GetCurrentTerrainType()
+    {
+        if (lastCheckedPiece != null)
+        {
+            return lastCheckedPiece.terrainType;
+        }
+        return TerrainType.Normal;
+    }
 }
