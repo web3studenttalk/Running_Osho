@@ -665,7 +665,7 @@ Transform:
   m_GameObject: {fileID: 241967625}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2, y: 1, z: 0}
+  m_LocalPosition: {x: 1.61, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2069,7 +2069,7 @@ Transform:
   m_GameObject: {fileID: 878101482}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4, y: 1, z: 0}
+  m_LocalPosition: {x: 3.6100001, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2340,7 +2340,7 @@ Transform:
   m_GameObject: {fileID: 1039394419}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1, y: 1, z: 0}
+  m_LocalPosition: {x: 0.61, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2375,28 +2375,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8d363ba178b3f74787c16449e5ed5ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCManager
-  oshoPrefab: {fileID: 5398993006351047125, guid: 8f9caa2467cb4434c93aed7867eb4e7c, type: 3}
+  oshoPrefab: {fileID: 5398993006351047125, guid: 593bb7a34ba06534ea1a8dae692fec5d, type: 3}
   pieceTable:
   - name: 
-    prefab: {fileID: 933993593193170677, guid: 2fc28beb78aac0541b6588c4282dca03, type: 3}
+    prefab: {fileID: 933993593193170677, guid: fc1395fa862ee6c4f8b7e79056954fd0, type: 3}
     weight: 1
   - name: 
-    prefab: {fileID: 2504134800193696144, guid: 880f2d89c9fbb644b8cc0e276a864e64, type: 3}
+    prefab: {fileID: 2504134800193696144, guid: 4671753dc6506654eb051816ff681c5f, type: 3}
     weight: 1
   - name: 
-    prefab: {fileID: 8477918743701324182, guid: b74da10575223ee4db3693e03384cb52, type: 3}
+    prefab: {fileID: 8477918743701324182, guid: cae24b5d06b90264a8d0446ea70ef0e8, type: 3}
     weight: 1
   - name: 
-    prefab: {fileID: 6499294462972002315, guid: 503d36fd5c49c3242a5502ec76aa762c, type: 3}
+    prefab: {fileID: 6499294462972002315, guid: e2903f9e8ddd26649af72f3ecb7f72ed, type: 3}
     weight: 1
   - name: 
-    prefab: {fileID: 6587641409447812512, guid: 1958f70198974a54d9776dacd83a3499, type: 3}
+    prefab: {fileID: 6587641409447812512, guid: 1dda3b2f5e812194a840328341f45f1b, type: 3}
     weight: 1
   - name: 
-    prefab: {fileID: 933993593193170677, guid: c7fbd2c22548e2a49928a0910b79925b, type: 3}
+    prefab: {fileID: 933993593193170677, guid: 490dccaad5b717d4fa05839b540bbb0f, type: 3}
     weight: 1
   - name: 
-    prefab: {fileID: 6996355324036059353, guid: af907d191ccc0894888cf25f43766a04, type: 3}
+    prefab: {fileID: 6996355324036059353, guid: 66b969ef74f0fc34fa45607c29b3a87c, type: 3}
     weight: 1
 --- !u!4 &1139453445
 Transform:
@@ -3215,7 +3215,7 @@ Transform:
   m_GameObject: {fileID: 1636790743}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3, y: 1, z: 0}
+  m_LocalPosition: {x: 2.6100001, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3421,6 +3421,9 @@ MonoBehaviour:
   playerRig: {fileID: 1408957846444505524}
   npcRigs:
   - {fileID: 1039394422}
+  - {fileID: 241967628}
+  - {fileID: 1636790746}
+  - {fileID: 878101485}
 --- !u!4 &1773808795
 Transform:
   m_ObjectHideFlags: 0
@@ -3963,8 +3966,8 @@ SceneRoots:
   - {fileID: 1162657534}
   - {fileID: 224967470}
   - {fileID: 1277470884}
-  - {fileID: 1865839522033105952}
   - {fileID: 1139453445}
+  - {fileID: 1865839522033105952}
   - {fileID: 1039394423}
   - {fileID: 241967629}
   - {fileID: 1636790747}

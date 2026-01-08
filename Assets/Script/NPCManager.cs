@@ -7,7 +7,7 @@ public class PieceEntry
 {
     public string name;
     public GameObject prefab;
-    [Tooltip("確率の重み")]
+    [Tooltip("確率の重み（大きいほど出やすい）")]
     public int weight = 10;
 }
 
@@ -20,7 +20,7 @@ public class NPCManager : MonoBehaviour
     public GameObject oshoPrefab;
 
     [Header("【ランダム枠】")]
-    [Tooltip("出現させたいコマと確率")]
+    [Tooltip("出現させたいコマと確率（王将以外を登録）")]
     public List<PieceEntry> pieceTable;
 
     void Awake()
@@ -29,16 +29,9 @@ public class NPCManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    /// <summary>
-    /// 重みに基づいてランダムなコマを1つ選んで返す
-    /// </summary>
     public GameObject GetRandomPiece()
     {
-        if (pieceTable == null || pieceTable.Count == 0)
-        {
-            Debug.LogError("NPCManager: コマが登録されていません！");
-            return null;
-        }
+        if (pieceTable == null || pieceTable.Count == 0) return null;
 
         int totalWeight = 0;
         foreach (var entry in pieceTable) totalWeight += entry.weight;
@@ -54,9 +47,6 @@ public class NPCManager : MonoBehaviour
         return pieceTable[0].prefab;
     }
     
-    /// <summary>
-    /// 王将のプレハブを返す
-    /// </summary>
     public GameObject GetOshoPiece()
     {
         return oshoPrefab;
