@@ -1,4 +1,3 @@
-// CourseProgressor.cs
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,10 +11,8 @@ public class CourseProgressor : MonoBehaviour
     private List<Transform> pathPoints;
     private float currentPathProgress = 0.0f;
     private Rigidbody rb;
-    
     private PlayerPieceData pieceData;
     private TrackPiece lastCheckedPiece = null;
-    
     private float currentMoveSpeed = 0f; 
     private float targetMoveSpeed = 0f;  
     private float itemSpeedMultiplier = 1.0f; 
@@ -35,20 +32,15 @@ public class CourseProgressor : MonoBehaviour
     public void RefreshPieceData(PlayerPieceData newPieceData)
     {
         pieceData = newPieceData;
-
         if (pieceData != null)
         {
             lastCheckedPiece = null;
-            // 初期速度の計算（地形がない場合はNormalとして計算）
             float startSpeed = pieceData.GetCurrentSpeed(TerrainType.Normal);
             currentMoveSpeed = startSpeed;
             targetMoveSpeed = startSpeed;
             enabled = true;
         }
-        else
-        {
-            enabled = false;
-        }
+        else enabled = false;
     }
 
     public void SetCourse(List<Transform> fullPath)
@@ -70,7 +62,7 @@ public class CourseProgressor : MonoBehaviour
         int p1_index = Mathf.FloorToInt(currentPathProgress);
         if (p1_index >= pathPoints.Count - 1)
         {
-            FinishRace();
+            FinishRace(); // ここでゴール処理
             return;
         }
 
@@ -87,31 +79,20 @@ public class CourseProgressor : MonoBehaviour
         Vector3 targetPosition = GetPointOnSpline(currentPathProgress);
         Vector3 desiredVelocity = (targetPosition - rb.position) / Time.fixedDeltaTime;
         
-        float actualSpeed = rb.linearVelocity.magnitude;
-        float desiredSpeed = desiredVelocity.magnitude;
-        bool isBlocked = (desiredSpeed > 1.0f && actualSpeed < desiredSpeed * 0.5f);
-        if (currentPathProgress < 1.0f) isBlocked = false;
-
-        if (!isBlocked)
-        {
-            int p2_index = p1_index + 1;
-            Vector3 p1 = pathPoints[p1_index].position;
-            Vector3 p2 = pathPoints[p2_index].position;
-            float segmentLength = Vector3.Distance(p1, p2);
-            float progressIncrement = (segmentLength > 0.001f) ? (finalSpeed * Time.fixedDeltaTime) / segmentLength : 0f;
-            currentPathProgress += progressIncrement;
-        }
-        
         rb.linearVelocity = desiredVelocity; 
 
-        if (!isBlocked)
+        // 進捗の更新
+        int p2_index = p1_index + 1;
+        float segmentLength = Vector3.Distance(pathPoints[p1_index].position, pathPoints[p2_index].position);
+        float progressIncrement = (segmentLength > 0.001f) ? (finalSpeed * Time.fixedDeltaTime) / segmentLength : 0f;
+        currentPathProgress += progressIncrement;
+
+        // 回転の更新
+        Vector3 lookDirection = GetPointOnSpline(currentPathProgress + 0.1f) - rb.position;
+        if (lookDirection != Vector3.zero)
         {
-            Vector3 lookDirection = GetPointOnSpline(currentPathProgress + 0.1f) - rb.position;
-            if (lookDirection != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(new Vector3(lookDirection.x, 0, lookDirection.z));
-                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSmoothness * Time.fixedDeltaTime));
-            }
+            Quaternion targetRotation = Quaternion.LookRotation(new Vector3(lookDirection.x, 0, lookDirection.z));
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSmoothness * Time.fixedDeltaTime));
         }
     }
 
@@ -126,37 +107,33 @@ public class CourseProgressor : MonoBehaviour
         }
     }
 
+    // 重複エラー(CS0111)を避けるため、一つにまとめます
     private void FinishRace()
     {
+        if (hasFinished) return;
         hasFinished = true;
         rb.linearVelocity = Vector3.zero;
         rb.isKinematic = true;
-        if (RaceGameManager.Instance != null) RaceGameManager.Instance.OnGoal();
+
+        if (RaceGameManager.Instance != null)
+        {
+            RaceGameManager.Instance.ReportGoal(gameObject.name);
+        }
     }
 
     private Vector3 GetPointOnSpline(float progress)
     {
-        int p0_index = Mathf.FloorToInt(progress) - 1;
-        int p1_index = p0_index + 1;
-        int p2_index = p0_index + 2;
-        int p3_index = p0_index + 3;
+        int p0_index = Mathf.Clamp(Mathf.FloorToInt(progress) - 1, 0, pathPoints.Count - 1);
+        int p1_index = Mathf.Clamp(p0_index + 1, 0, pathPoints.Count - 1);
+        int p2_index = Mathf.Clamp(p0_index + 2, 0, pathPoints.Count - 1);
+        int p3_index = Mathf.Clamp(p0_index + 3, 0, pathPoints.Count - 1);
         float t = progress - Mathf.FloorToInt(progress);
-        Vector3 p0 = pathPoints[Mathf.Clamp(p0_index, 0, pathPoints.Count - 1)].position;
-        Vector3 p1 = pathPoints[Mathf.Clamp(p1_index, 0, pathPoints.Count - 1)].position;
-        Vector3 p2 = pathPoints[Mathf.Clamp(p2_index, 0, pathPoints.Count - 1)].position;
-        Vector3 p3 = pathPoints[Mathf.Clamp(p3_index, 0, pathPoints.Count - 1)].position;
-        Vector3 position = 0.5f * ((2f * p1) + (-p0 + p2) * t + (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t + (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t);
-        return position;
+        Vector3 p0 = pathPoints[p0_index].position;
+        Vector3 p1 = pathPoints[p1_index].position;
+        Vector3 p2 = pathPoints[p2_index].position;
+        Vector3 p3 = pathPoints[p3_index].position;
+        return 0.5f * ((2f * p1) + (-p0 + p2) * t + (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t + (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t);
     }
-    /// <summary>
-    /// 現在走行中の地形タイプを返す（NPC用）
-    /// </summary>
-    public TerrainType GetCurrentTerrainType()
-    {
-        if (lastCheckedPiece != null)
-        {
-            return lastCheckedPiece.terrainType;
-        }
-        return TerrainType.Normal;
-    }
+
+    public TerrainType GetCurrentTerrainType() => (lastCheckedPiece != null) ? lastCheckedPiece.terrainType : TerrainType.Normal;
 }
