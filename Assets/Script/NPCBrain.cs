@@ -8,70 +8,29 @@ public class NPCBrain : MonoBehaviour
 {
     [Header("AI設定")]
     [Tooltip("スタート時の待機時間")]
-    [SerializeField] private float startDelay = 1.0f;
-    [Tooltip("思考間隔（秒）")]
-    [SerializeField] private float thinkInterval = 1.0f;
+    [SerializeField] private float startDelay = 0.5f;
+    [Tooltip("思考の間隔（秒）：小さいほど頻繁に駒を変えます")]
+    [SerializeField] private float thinkInterval = 0.5f;
 
     // --- デッキ管理 ---
-    // ランダム枠（5つ）
     private List<GameObject> randomDeck = new List<GameObject>();
     private const int MAX_RANDOM_SLOTS = 5;
-
-    // 王将枠（固定・消費しない）
-    private GameObject oshoPiecePrefab;
+    private GameObject oshoPiecePrefab; // 王将枠
 
     private CourseProgressor courseProgressor;
     private GameObject currentPieceInstance;
     private PlayerPieceData currentPieceData;
     private TerrainType lastCheckedTerrain = TerrainType.Normal;
 
-    // ========================================================================
-    //  ★優先度リスト（パラメータ表完全準拠版）★
-    // ========================================================================
+    // --- 優先度リスト ---
+    private readonly List<PieceType> straightBest = new List<PieceType> { PieceType.Hisha, PieceType.Kyosha };
+    private readonly List<PieceType> straightBetter = new List<PieceType> { PieceType.Osho, PieceType.Kinsho, PieceType.Ginsho, PieceType.Kakugyo };
 
-    // ■ 直進・上り坂・下り坂 (Straight, Slope)
-    // 最強(2.0): 飛車, 香車
-    private readonly List<PieceType> straight1 = new List<PieceType> 
-    { 
-        PieceType.Hisha, PieceType.Kyosha 
-    };
-    // 妥協(1.5): 王将
-    // ※表によると金・銀・角(1.0)は遅いので、ここには入れません。
-    private readonly List<PieceType> straight2 = new List<PieceType> 
-    { 
-        PieceType.Hisha, PieceType.Kyosha, 
-        PieceType.Osho 
-    };
-    
-    // ■ カーブ（大カーブ） (Curve, BigCurve)
-    // 最強(2.0): 角行
-    private readonly List<PieceType> curve1 = new List<PieceType> 
-    { 
-        PieceType.Kakugyo 
-    };
-    // 妥協(1.5): 王将, 金将, 銀将
-    // ※表によると飛車(1.0)は曲がれないので除外。香車(0.5)も除外。
-    private readonly List<PieceType> curve2 = new List<PieceType> 
-    { 
-        PieceType.Kakugyo, 
-        PieceType.Osho, PieceType.Kinsho, PieceType.Ginsho 
-    };
+    private readonly List<PieceType> curveBest = new List<PieceType> { PieceType.Kakugyo };
+    private readonly List<PieceType> curveBetter = new List<PieceType> { PieceType.Osho, PieceType.Kinsho, PieceType.Ginsho, PieceType.Keima };
 
-    // ■ S字・障害物・狭窄 (S-Curve, Obstacle, Narrow)
-    // 最強(2.0): 桂馬, 角行
-    private readonly List<PieceType> scurve1 = new List<PieceType> 
-    { 
-        PieceType.Keima, PieceType.Kakugyo 
-    };
-    // 妥協(1.5): 王将, 金将, 飛車
-    // ※表によると飛車はS字/障害物で1.5あるので採用。銀将(1.0)は除外。
-    private readonly List<PieceType> scurve2 = new List<PieceType> 
-    { 
-        PieceType.Keima, PieceType.Kakugyo, 
-        PieceType.Osho, PieceType.Kinsho, PieceType.Hisha 
-    };
-
-    // ========================================================================
+    private readonly List<PieceType> scurveBest = new List<PieceType> { PieceType.Keima, PieceType.Kakugyo };
+    private readonly List<PieceType> scurveBetter = new List<PieceType> { PieceType.Osho, PieceType.Hisha, PieceType.Kinsho, PieceType.Ginsho };
 
 
     void Awake()
@@ -85,15 +44,14 @@ public class NPCBrain : MonoBehaviour
         StartCoroutine(StartRoutine());
     }
 
-    // デッキの初期化（ランダム5つ + 王将）
     private void InitializeDeck()
     {
         if (NPCManager.Instance == null) return;
-
-        // 1. 王将を受け取る
+        
+        // 王将の取得
         oshoPiecePrefab = NPCManager.Instance.GetOshoPiece();
-
-        // 2. ランダム枠を5つ埋める
+        
+        // ランダム枠の補充
         while (randomDeck.Count < MAX_RANDOM_SLOTS)
         {
             GameObject newPiece = NPCManager.Instance.GetRandomPiece();
@@ -105,99 +63,100 @@ public class NPCBrain : MonoBehaviour
     private IEnumerator StartRoutine()
     {
         yield return new WaitForSeconds(startDelay);
+        if(randomDeck.Count > 0) UseRandomPieceAtIndex(0);
         
-        // 最初はランダム枠の0番目を使ってスタート
-        if(randomDeck.Count > 0)
-        {
-            UseRandomPieceAtIndex(0);
-        }
-
+        // 思考ルーチン開始
         StartCoroutine(ThinkRoutine());
     }
 
+    // --- エラー対策版：思考ルーチン ---
     private IEnumerator ThinkRoutine()
     {
         while (true)
         {
-            if (courseProgressor != null && currentPieceData != null)
+            // エラーが起きてもループを止めないように try-catch で囲む
+            try
             {
-                TerrainType currentTerrain = courseProgressor.GetCurrentTerrainType();
-                CheckSituationAndSwitch(currentTerrain, currentPieceData.pieceType);
-                lastCheckedTerrain = currentTerrain;
+                if (courseProgressor != null && currentPieceData != null)
+                {
+                    TerrainType currentTerrain = courseProgressor.GetCurrentTerrainType();
+                    
+                    // 地形と手持ちを見て最適な行動をとる
+                    DecideBestPiece(currentTerrain, currentPieceData.pieceType);
+                    
+                    lastCheckedTerrain = currentTerrain;
+                }
             }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"NPC思考中にエラー発生（復帰します）: {e.Message}");
+            }
+
             yield return new WaitForSeconds(thinkInterval);
         }
     }
 
-    // 地形と今のコマを見て、変えるべきか判断する
-    private void CheckSituationAndSwitch(TerrainType terrain, PieceType currentKoma)
+    private void DecideBestPiece(TerrainType terrain, PieceType currentKoma)
     {
+        List<PieceType> bestList = null;
+        List<PieceType> betterList = null;
+
         switch (terrain)
         {
-            // --- 直進エリア ---
             case TerrainType.Straight:
             case TerrainType.SlopeUp:
             case TerrainType.SlopeDown:
-                // 現在がスコア1.0以下のコマ（金,銀,角,桂,歩）なら、1.5以上のコマに変える
-                if (IsOneOf(currentKoma, PieceType.Kinsho, PieceType.Ginsho, PieceType.Kakugyo, PieceType.Keima, PieceType.Fuhyo))
-                {
-                    // まず最強(2.0)を探し、なければ妥協(1.5)を探す
-                    if (!TrySwitchPiece(straight1)) TrySwitchPiece(straight2);
-                }
-                // もし今が王将(1.5)なら、最強(2.0)があれば変えたい
-                else if (currentKoma == PieceType.Osho)
-                {
-                    TrySwitchPiece(straight1);
-                }
+                bestList = straightBest;
+                betterList = straightBetter;
                 break;
 
-            // --- カーブエリア ---
             case TerrainType.BigCurve:
             case TerrainType.Normal:
-                // 現在がスコア1.0以下のコマ（飛,桂,香,歩）なら、1.5以上のコマに変える
-                if (IsOneOf(currentKoma, PieceType.Hisha, PieceType.Keima, PieceType.Kyosha, PieceType.Fuhyo))
-                {
-                    if (!TrySwitchPiece(curve1)) TrySwitchPiece(curve2);
-                }
+                bestList = curveBest;
+                betterList = curveBetter;
                 break;
 
-            // --- S字・障害物エリア ---
             case TerrainType.SCurve:
             case TerrainType.Obstacle:
             case TerrainType.Narrow:
-                // 現在がスコア1.0以下のコマ（銀,香,歩）なら、1.5以上のコマに変える
-                if (IsOneOf(currentKoma, PieceType.Ginsho, PieceType.Kyosha, PieceType.Fuhyo))
-                {
-                    if (!TrySwitchPiece(scurve1)) TrySwitchPiece(scurve2);
-                }
-                // 今が1.5グループ（王,金,飛）なら、最強(2.0)があれば変えたい
-                else if (IsOneOf(currentKoma, PieceType.Osho, PieceType.Kinsho, PieceType.Hisha))
-                {
-                    TrySwitchPiece(scurve1);
-                }
+                bestList = scurveBest;
+                betterList = scurveBetter;
                 break;
+        }
+
+        if (bestList == null) return;
+
+        // 今の駒が最強リストに入っていないなら交代を検討
+        bool isUsingBest = bestList.Contains(currentKoma);
+
+        if (!isUsingBest)
+        {
+            // 最強の駒を持っていれば即交代
+            if (TrySwitchPiece(bestList)) return; 
+            
+            // 持っていなくて、今の駒が「妥協リスト」にも入っていないなら、妥協リスト内の駒へ交代
+            bool isUsingBetter = betterList.Contains(currentKoma);
+            if (!isUsingBetter)
+            {
+                TrySwitchPiece(betterList);
+            }
         }
     }
 
-    private bool IsOneOf(PieceType target, params PieceType[] types)
-    {
-        foreach (var t in types) if (target == t) return true;
-        return false;
-    }
-
-    // 優先度リストに従って、手持ち（王将 or ランダム枠）から探して交代する
     private bool TrySwitchPiece(List<PieceType> priorityList)
     {
         if (NPCManager.Instance == null) return false;
 
         foreach (PieceType desiredType in priorityList)
         {
-            // すでにその駒なら何もしない
             if (currentPieceData != null && currentPieceData.pieceType == desiredType) return true;
 
-            // --- A. 王将チェック (固定枠) ---
+            // 1. 王将チェック
             if (desiredType == PieceType.Osho && oshoPiecePrefab != null)
             {
+                // 王将プレハブ自体が消えている可能性ケア
+                if (oshoPiecePrefab == null) continue;
+
                 var oshoData = oshoPiecePrefab.GetComponent<PlayerPieceData>();
                 if (oshoData != null && oshoData.pieceType == PieceType.Osho)
                 {
@@ -206,9 +165,11 @@ public class NPCBrain : MonoBehaviour
                 }
             }
 
-            // --- B. ランダム枠チェック (5枠) ---
+            // 2. ランダム枠チェック
             for (int i = 0; i < randomDeck.Count; i++)
             {
+                if (randomDeck[i] == null) continue; // 空データケア
+
                 PlayerPieceData data = randomDeck[i].GetComponent<PlayerPieceData>();
                 if (data != null && data.pieceType == desiredType)
                 {
@@ -220,7 +181,6 @@ public class NPCBrain : MonoBehaviour
         return false;
     }
 
-    // ランダム枠の駒を使う（消費して補充）
     private void UseRandomPieceAtIndex(int index)
     {
         if (index < 0 || index >= randomDeck.Count) return;
@@ -228,12 +188,22 @@ public class NPCBrain : MonoBehaviour
         GameObject prefabToSpawn = randomDeck[index];
         SpawnPiece(prefabToSpawn);
 
+        // 消費と補充
         randomDeck.RemoveAt(index);
         GameObject newPiece = NPCManager.Instance.GetRandomPiece();
-        if (newPiece != null) randomDeck.Insert(index, newPiece);
+        
+        // 補充できた場合のみ追加
+        if (newPiece != null) 
+        {
+            randomDeck.Insert(index, newPiece);
+        }
+        else
+        {
+            // 万が一補充できなかったら、穴埋めとして既存のprefabを入れるなどの対策も可能だが
+            // ここではリストが減ったままにする（エラー回避優先）
+        }
     }
 
-    // 王将を使う（消費しない）
     private void UseOshoPiece()
     {
         if (oshoPiecePrefab != null)
@@ -242,7 +212,7 @@ public class NPCBrain : MonoBehaviour
         }
     }
 
-    // 生成処理（位置引継ぎ）
+    // --- ▼▼▼ 修正箇所：安全な削除と生成 ▼▼▼ ---
     private void SpawnPiece(GameObject prefabToSpawn)
     {
         if (prefabToSpawn == null) return;
@@ -251,9 +221,11 @@ public class NPCBrain : MonoBehaviour
         Quaternion previousLocalRot = Quaternion.identity;
         bool foundActive = false;
 
+        // 1. 古い駒（Activeなもの）を探して位置を記憶
+        //    ただし「PlayerPieceData」を持っているものだけを対象にする！
         foreach (Transform child in transform)
         {
-            if (child.gameObject.activeSelf)
+            if (child.gameObject.activeSelf && child.GetComponent<PlayerPieceData>() != null)
             {
                 previousLocalPos = child.localPosition;
                 previousLocalRot = child.localRotation;
@@ -262,14 +234,29 @@ public class NPCBrain : MonoBehaviour
             }
         }
 
+        // 2. 古い駒だけを削除（無差別削除をやめる）
+        //    リストに入れてから消す（ループ中の削除エラー防止）
+        List<GameObject> objectsDestroy = new List<GameObject>();
         foreach (Transform child in transform)
         {
-            child.gameObject.SetActive(false);
-            Destroy(child.gameObject);
+            // PlayerPieceDataがついているものだけを消す対象にする
+            if (child.GetComponent<PlayerPieceData>() != null)
+            {
+                objectsDestroy.Add(child.gameObject);
+            }
+        }
+        
+        // 実際に削除
+        foreach (GameObject obj in objectsDestroy)
+        {
+            obj.SetActive(false);
+            Destroy(obj);
         }
 
+        // 3. 新しい駒を生成
         currentPieceInstance = Instantiate(prefabToSpawn, transform);
 
+        // 4. 位置の復元
         if (foundActive)
         {
             currentPieceInstance.transform.localPosition = previousLocalPos;
@@ -281,6 +268,7 @@ public class NPCBrain : MonoBehaviour
             currentPieceInstance.transform.localRotation = Quaternion.identity;
         }
 
+        // 5. データの更新
         currentPieceData = currentPieceInstance.GetComponent<PlayerPieceData>();
         if (courseProgressor != null && currentPieceData != null)
         {
