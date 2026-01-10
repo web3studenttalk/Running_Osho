@@ -2153,6 +2153,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPieceData
   pieceType: 2
   speedRatio: 0.5
+  myPrefab: {fileID: 6499294462972002315}
   promotedSpeedMultiplier: 1.2
   normalMaterial: {fileID: 2100000, guid: ae1f0dc10ccdbc44f89c6f0ebf1581a6, type: 2}
   promotedMaterial: {fileID: 2100000, guid: ed3806a82bd15694fb976d65f67c3f0b, type: 2}
@@ -2193,7 +2194,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2

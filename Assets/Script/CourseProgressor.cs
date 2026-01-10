@@ -4,19 +4,26 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class CourseProgressor : MonoBehaviour
 {
+    public static List<CourseProgressor> AllProgressors = new List<CourseProgressor>();
+
     [Header("走行設定")]
     [SerializeField] private float rotationSmoothness = 10.0f;
     [SerializeField] private float speedChangeSmoothness = 5.0f;
+    [SerializeField] private float laneChangeSpeed = 5.0f;
 
     private List<Transform> pathPoints;
     private float currentPathProgress = 0.0f;
     private Rigidbody rb;
     private PlayerPieceData pieceData;
     private TrackPiece lastCheckedPiece = null;
-    private float currentMoveSpeed = 0f; 
+    
+    public float currentMoveSpeed { get; private set; } = 0f; 
     private float targetMoveSpeed = 0f;  
     private float itemSpeedMultiplier = 1.0f; 
     private bool hasFinished = false;
+
+    public float targetHorizontalOffset = 0f;
+    private float currentHorizontalOffset = 0f;
 
     public void SetSpeedMultiplier(float multiplier) { itemSpeedMultiplier = multiplier; }
     public void PromotePiece() { if (pieceData != null) { pieceData.Promote(); RecalculateSpeed(); } }
@@ -27,44 +34,70 @@ public class CourseProgressor : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.isKinematic = false;
         rb.useGravity = false;
+        if (!AllProgressors.Contains(this)) AllProgressors.Add(this);
+    }
+
+    private void OnDestroy() { AllProgressors.Remove(this); }
+
+    // すり抜け判定（Is TriggerがONの場合）
+    private void OnTriggerEnter(Collider other)
+    {
+        if (hasFinished || RaceGameManager.Instance == null || !RaceGameManager.Instance.IsRacing()) return;
+
+        // タグ「Racer」がエディタに登録されている必要があります
+        if (other.CompareTag("Racer"))
+        {
+            CourseProgressor otherProgressor = other.GetComponentInParent<CourseProgressor>();
+            if (otherProgressor == null || otherProgressor == this) return;
+            
+            // 自分の方が速ければ相手のコマを奪う
+            if (this.currentMoveSpeed >= otherProgressor.currentMoveSpeed) ExecuteCapture(otherProgressor);
+        }
+    }
+
+    private void ExecuteCapture(CourseProgressor victim)
+    {
+        PlayerPieceData victimPiece = victim.GetComponentInChildren<PlayerPieceData>();
+        if (victimPiece == null) return;
+
+        if (victimPiece.pieceType == PieceType.Osho)
+        {
+            if (victim.GetComponent<PlayerLaneController>() != null) RaceGameManager.Instance.GameOver(); 
+            return;
+        }
+
+        var myDeck = GetComponent<PieceDeckManager>();
+        if (myDeck != null) myDeck.AddCapturedPiece(victimPiece.myPrefab);
+
+        var victimDeck = victim.GetComponent<PieceDeckManager>();
+        if (victimDeck != null) victimDeck.LoseCurrentPiece();
+
+        var victimBrain = victim.GetComponent<NPCBrain>();
+        if (victimBrain != null) victimBrain.LoseCurrentPiece();
+
+        Debug.Log($"{gameObject.name} が {victim.gameObject.name} の駒を奪った！");
     }
 
     public void RefreshPieceData(PlayerPieceData newPieceData)
     {
         pieceData = newPieceData;
-        if (pieceData != null)
-        {
+        if (pieceData != null) {
             lastCheckedPiece = null;
-            float startSpeed = pieceData.GetCurrentSpeed(TerrainType.Normal);
-            currentMoveSpeed = startSpeed;
-            targetMoveSpeed = startSpeed;
+            targetMoveSpeed = pieceData.GetCurrentSpeed(TerrainType.Normal);
+            currentMoveSpeed = targetMoveSpeed;
             enabled = true;
         }
-        else enabled = false;
     }
 
-    public void SetCourse(List<Transform> fullPath)
-    {
-        pathPoints = fullPath;
-        if (pathPoints == null || pathPoints.Count < 2) enabled = false;
-    }
+    public void SetCourse(List<Transform> fullPath) { pathPoints = fullPath; }
 
     void FixedUpdate()
     {
         if (pathPoints == null || pieceData == null || hasFinished) return;
-
-        if (RaceGameManager.Instance != null && !RaceGameManager.Instance.IsRacing())
-        {
-            rb.linearVelocity = Vector3.zero;
-            return; 
-        }
+        if (RaceGameManager.Instance != null && !RaceGameManager.Instance.IsRacing()) { rb.linearVelocity = Vector3.zero; return; }
 
         int p1_index = Mathf.FloorToInt(currentPathProgress);
-        if (p1_index >= pathPoints.Count - 1)
-        {
-            FinishRace(); // ここでゴール処理
-            return;
-        }
+        if (p1_index >= pathPoints.Count - 1) { FinishRace(); return; }
 
         TrackPiece currentPiece = pathPoints[p1_index].GetComponentInParent<TrackPiece>();
         if (currentPiece != null && currentPiece != lastCheckedPiece)
@@ -76,63 +109,49 @@ public class CourseProgressor : MonoBehaviour
         currentMoveSpeed = Mathf.Lerp(currentMoveSpeed, targetMoveSpeed, Time.fixedDeltaTime * speedChangeSmoothness);
         float finalSpeed = currentMoveSpeed * itemSpeedMultiplier;
 
-        Vector3 targetPosition = GetPointOnSpline(currentPathProgress);
-        Vector3 desiredVelocity = (targetPosition - rb.position) / Time.fixedDeltaTime;
+        currentHorizontalOffset = Mathf.Lerp(currentHorizontalOffset, targetHorizontalOffset, Time.fixedDeltaTime * laneChangeSpeed);
         
-        rb.linearVelocity = desiredVelocity; 
+        Vector3 basePos = GetPointOnSpline(currentPathProgress);
+        Vector3 nextPos = GetPointOnSpline(currentPathProgress + 0.01f);
+        Vector3 forward = (nextPos - basePos).normalized;
+        Vector3 right = Vector3.Cross(Vector3.up, forward).normalized;
+        Vector3 targetWorldPos = basePos + (right * currentHorizontalOffset);
 
-        // 進捗の更新
-        int p2_index = p1_index + 1;
-        float segmentLength = Vector3.Distance(pathPoints[p1_index].position, pathPoints[p2_index].position);
-        float progressIncrement = (segmentLength > 0.001f) ? (finalSpeed * Time.fixedDeltaTime) / segmentLength : 0f;
-        currentPathProgress += progressIncrement;
+        rb.linearVelocity = (targetWorldPos - rb.position) / Time.fixedDeltaTime;
 
-        // 回転の更新
-        Vector3 lookDirection = GetPointOnSpline(currentPathProgress + 0.1f) - rb.position;
-        if (lookDirection != Vector3.zero)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(new Vector3(lookDirection.x, 0, lookDirection.z));
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSmoothness * Time.fixedDeltaTime));
-        }
+        float segmentLength = Vector3.Distance(pathPoints[p1_index].position, pathPoints[p1_index+1].position);
+        currentPathProgress += (segmentLength > 0.001f) ? (finalSpeed * Time.fixedDeltaTime) / segmentLength : 0f;
+
+        if (forward != Vector3.zero) 
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, Quaternion.LookRotation(forward), rotationSmoothness * Time.fixedDeltaTime));
     }
 
+    // エラー CS0103 を解消：RecalculateSpeedメソッド
     private void RecalculateSpeed()
     {
         if (pathPoints == null || pieceData == null) return;
-        int index = Mathf.FloorToInt(currentPathProgress);
-        if (index < pathPoints.Count)
-        {
-            TrackPiece piece = pathPoints[index].GetComponentInParent<TrackPiece>();
-            if (piece != null) targetMoveSpeed = pieceData.GetCurrentSpeed(piece.terrainType);
+        int i = Mathf.FloorToInt(currentPathProgress);
+        if (i < pathPoints.Count) {
+            var p = pathPoints[i].GetComponentInParent<TrackPiece>();
+            if (p != null) targetMoveSpeed = pieceData.GetCurrentSpeed(p.terrainType);
         }
     }
 
-    // 重複エラー(CS0111)を避けるため、一つにまとめます
+    // エラー CS0111 を解消：FinishRaceメソッドを統合
     private void FinishRace()
     {
         if (hasFinished) return;
         hasFinished = true;
         rb.linearVelocity = Vector3.zero;
         rb.isKinematic = true;
-
-        if (RaceGameManager.Instance != null)
-        {
-            RaceGameManager.Instance.ReportGoal(gameObject.name);
-        }
+        if (RaceGameManager.Instance != null) RaceGameManager.Instance.ReportGoal(gameObject.name);
     }
 
-    private Vector3 GetPointOnSpline(float progress)
+    private Vector3 GetPointOnSpline(float p)
     {
-        int p0_index = Mathf.Clamp(Mathf.FloorToInt(progress) - 1, 0, pathPoints.Count - 1);
-        int p1_index = Mathf.Clamp(p0_index + 1, 0, pathPoints.Count - 1);
-        int p2_index = Mathf.Clamp(p0_index + 2, 0, pathPoints.Count - 1);
-        int p3_index = Mathf.Clamp(p0_index + 3, 0, pathPoints.Count - 1);
-        float t = progress - Mathf.FloorToInt(progress);
-        Vector3 p0 = pathPoints[p0_index].position;
-        Vector3 p1 = pathPoints[p1_index].position;
-        Vector3 p2 = pathPoints[p2_index].position;
-        Vector3 p3 = pathPoints[p3_index].position;
-        return 0.5f * ((2f * p1) + (-p0 + p2) * t + (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t + (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t);
+        int i = Mathf.Clamp(Mathf.FloorToInt(p), 0, pathPoints.Count-1);
+        int j = Mathf.Clamp(i+1, 0, pathPoints.Count-1);
+        return Vector3.Lerp(pathPoints[i].position, pathPoints[j].position, p - Mathf.FloorToInt(p));
     }
 
     public TerrainType GetCurrentTerrainType() => (lastCheckedPiece != null) ? lastCheckedPiece.terrainType : TerrainType.Normal;

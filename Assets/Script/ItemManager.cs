@@ -2,16 +2,15 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
+// クラスの外で定義することでエラー CS0246 を防ぎます
 public enum ItemType { None, Totsugeki, Nari, Kakoi, Kokaku }
 
 public class ItemManager : MonoBehaviour
 {
     public static ItemManager Instance;
 
-    [Header("プレイヤー参照")]
+    [Header("参照")]
     [SerializeField] private CourseProgressor playerProgressor;
-    
-    [Header("UI参照")]
     [SerializeField] private Button itemButton;
     [SerializeField] private Image itemIconImage;
 
@@ -44,6 +43,7 @@ public class ItemManager : MonoBehaviour
         UpdateUI();
     }
 
+    // エラー CS0103 を解消：UseItemメソッド
     public void UseItem()
     {
         if (currentItem == ItemType.None) return;
@@ -68,6 +68,7 @@ public class ItemManager : MonoBehaviour
         currentEffectCoroutine = null;
     }
 
+    // エラー CS0103 を解消：UpdateUIメソッド
     private void UpdateUI()
     {
         if (itemIconImage == null || itemButton == null) return;
