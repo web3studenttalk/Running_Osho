@@ -1,4 +1,3 @@
-// ItemManager.cs
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
@@ -7,89 +6,94 @@ public enum ItemType { None, Totsugeki, Nari, Kakoi, Kokaku }
 
 public class ItemManager : MonoBehaviour
 {
-    [Header("参照")]
+    public static ItemManager Instance;
+
+    [Header("プレイヤー参照")]
     [SerializeField] private CourseProgressor playerProgressor;
+    
+    [Header("UI参照")]
     [SerializeField] private Button itemButton;
     [SerializeField] private Image itemIconImage;
 
     [Header("アイテム画像素材")]
-    [SerializeField] private Sprite iconTotsugeki;
-    [SerializeField] private Sprite iconNari;
-    [SerializeField] private Sprite iconKakoi;
-    [SerializeField] private Sprite iconKokaku;
-    [SerializeField] private Sprite iconNone;
+    public Sprite iconTotsugeki;
+    public Sprite iconNari;
+    public Sprite iconKakoi;
+    public Sprite iconKokaku;
+    public Sprite iconNone;
 
     private ItemType currentItem = ItemType.None;
     private Coroutine currentEffectCoroutine = null;
 
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
+
     void Start()
     {
         UpdateUI();
-        itemButton.onClick.AddListener(UseItem);
+        if (itemButton != null) itemButton.onClick.AddListener(UseItem);
     }
 
-    public void GetRandomItem()
+    // プレイヤーがアイテムを取得した時に呼ばれる
+    public void GiveItemToPlayer(ItemType type)
     {
-        int rand = Random.Range(1, 5);
-        currentItem = (ItemType)rand;
+        if (currentItem != ItemType.None) return; // 既に持っていたら取れない
+        
+        currentItem = type;
         UpdateUI();
+        Debug.Log($"プレイヤーがアイテム【{type}】を取得！");
     }
 
+    // UIボタンを押した時に実行
     public void UseItem()
     {
         if (currentItem == ItemType.None) return;
 
-        if (currentEffectCoroutine != null)
-        {
-            StopCoroutine(currentEffectCoroutine);
-            ResetAllEffects();
-        }
-
-        currentEffectCoroutine = StartCoroutine(ApplyItemEffect(currentItem));
+        if (currentEffectCoroutine != null) StopCoroutine(currentEffectCoroutine);
+        currentEffectCoroutine = StartCoroutine(ApplyEffect(playerProgressor, currentItem));
 
         currentItem = ItemType.None;
         UpdateUI();
     }
 
-    private void ResetAllEffects()
+    // アイテムの効果内容
+    public IEnumerator ApplyEffect(CourseProgressor target, ItemType type)
     {
-        playerProgressor.SetSpeedMultiplier(1.0f);
-        playerProgressor.DemotePiece(); 
-    }
+        if (target == null) yield break;
 
-    private IEnumerator ApplyItemEffect(ItemType type)
-    {
         switch (type)
         {
-            case ItemType.Totsugeki: // 突撃：3秒間、速度2倍（アイテム倍率で対応）
-                playerProgressor.SetSpeedMultiplier(2.0f);
+            case ItemType.Totsugeki:
+                target.SetSpeedMultiplier(2.0f);
                 yield return new WaitForSeconds(3.0f);
                 break;
-
-            case ItemType.Nari: // 成り：5秒間
-                // ▼ 修正：速度の強制変更(SetSpeedMultiplier)を削除しました
-                // コマ側で設定された PromotedSpeedMultiplier が適用されます
-                playerProgressor.PromotePiece(); 
+            case ItemType.Nari:
+                target.PromotePiece();
                 yield return new WaitForSeconds(5.0f);
                 break;
-
-            case ItemType.Kakoi: // 囲い：5秒間
-                playerProgressor.SetSpeedMultiplier(1.2f);
+            case ItemType.Kakoi:
+                target.SetSpeedMultiplier(1.2f);
                 yield return new WaitForSeconds(5.0f);
                 break;
-
-            case ItemType.Kokaku: // 降格：3秒間
-                playerProgressor.SetSpeedMultiplier(0.5f);
+            case ItemType.Kokaku:
+                target.SetSpeedMultiplier(0.5f);
                 yield return new WaitForSeconds(3.0f);
                 break;
         }
 
-        ResetAllEffects();
+        // 効果終了
+        target.SetSpeedMultiplier(1.0f);
+        target.DemotePiece();
         currentEffectCoroutine = null;
     }
 
     private void UpdateUI()
     {
+        if (itemIconImage == null || itemButton == null) return;
+
         if (currentItem == ItemType.None)
         {
             itemIconImage.sprite = iconNone;

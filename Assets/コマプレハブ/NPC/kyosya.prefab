@@ -2722,7 +2722,7 @@ GameObject:
   - component: {fileID: 7502197667972022600}
   m_Layer: 6
   m_Name: kyosya
-  m_TagString: Untagged
+  m_TagString: Racer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

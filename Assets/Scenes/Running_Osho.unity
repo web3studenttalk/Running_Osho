@@ -594,9 +594,10 @@ GameObject:
   - component: {fileID: 241967628}
   - component: {fileID: 241967627}
   - component: {fileID: 241967626}
+  - component: {fileID: 241967630}
   m_Layer: 6
   m_Name: NPCRig (1)
-  m_TagString: Untagged
+  m_TagString: Racer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -671,6 +672,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &241967630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241967625}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d9750bd9a457f24fb210260b16e4007, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemInventory
+  currentItemName: "\u306A\u3057"
+  hasItem: 0
+  itemText: {fileID: 0}
 --- !u!1 &333175811
 GameObject:
   m_ObjectHideFlags: 0
@@ -1998,9 +2014,10 @@ GameObject:
   - component: {fileID: 878101485}
   - component: {fileID: 878101484}
   - component: {fileID: 878101483}
+  - component: {fileID: 878101487}
   m_Layer: 6
   m_Name: NPCRig (3)
-  m_TagString: Untagged
+  m_TagString: Racer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2075,6 +2092,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &878101487
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 878101482}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d9750bd9a457f24fb210260b16e4007, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemInventory
+  currentItemName: "\u306A\u3057"
+  hasItem: 0
+  itemText: {fileID: 0}
 --- !u!1 &920206999
 GameObject:
   m_ObjectHideFlags: 0
@@ -2269,9 +2301,10 @@ GameObject:
   - component: {fileID: 1039394422}
   - component: {fileID: 1039394421}
   - component: {fileID: 1039394420}
+  - component: {fileID: 1039394424}
   m_Layer: 6
   m_Name: NPCRig
-  m_TagString: Untagged
+  m_TagString: Racer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2346,6 +2379,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1039394424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1039394419}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d9750bd9a457f24fb210260b16e4007, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemInventory
+  currentItemName: "\u306A\u3057"
+  hasItem: 0
+  itemText: {fileID: 0}
 --- !u!1 &1139453443
 GameObject:
   m_ObjectHideFlags: 0
@@ -3144,9 +3192,10 @@ GameObject:
   - component: {fileID: 1636790746}
   - component: {fileID: 1636790745}
   - component: {fileID: 1636790744}
+  - component: {fileID: 1636790748}
   m_Layer: 6
   m_Name: NPCRig (2)
-  m_TagString: Untagged
+  m_TagString: Racer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3221,6 +3270,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1636790748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1636790743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d9750bd9a457f24fb210260b16e4007, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemInventory
+  currentItemName: "\u306A\u3057"
+  hasItem: 0
+  itemText: {fileID: 0}
 --- !u!1 &1667818750
 GameObject:
   m_ObjectHideFlags: 0
@@ -3399,19 +3463,19 @@ MonoBehaviour:
   startPiecePrefab: {fileID: 1239260873619544226, guid: 84c28d3c6795b9b4ab19bac147abf567, type: 3}
   middlePiecePrefabs:
   - piecePrefab: {fileID: 4280240282784406742, guid: 5e12abece82d86c4da40fe8cc7a5a31a, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 7532981403811653149, guid: aa96e4e69ffcc594eabd4b65b46d8a83, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 4434331101611837083, guid: eb01ecb4e866aeb49a78833f7ef47dd7, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 2769112446758559364, guid: 45af1f6a828fbc74d8e331552dae7169, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 7190429424563581976, guid: ff28c30934648ca47a37833147d8c8ac, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 7707216507807145575, guid: 0af5214d182cb6f46ad86c9ab1edc625, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 8322818403318280346, guid: 9d8e7d4ec1d962c4cbc64ea65046c023, type: 3}
-    weight: 1
+    weight: 0
   - piecePrefab: {fileID: 707616863661755411, guid: b682bfd6be923974aa9727a5fa412296, type: 3}
     weight: 1
   - piecePrefab: {fileID: 1239260873619544226, guid: 84c28d3c6795b9b4ab19bac147abf567, type: 3}
@@ -3934,9 +3998,10 @@ GameObject:
   - component: {fileID: 1408957846444505524}
   - component: {fileID: 4820020130896528392}
   - component: {fileID: 6004695169752475048}
+  - component: {fileID: 6004695169752475049}
   m_Layer: 6
   m_Name: PlayerRig
-  m_TagString: Untagged
+  m_TagString: Racer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3954,6 +4019,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLaneController
   moveSpeed: 5
+--- !u!114 &6004695169752475049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6004695169752475047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d9750bd9a457f24fb210260b16e4007, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemInventory
+  currentItemName: "\u306A\u3057"
+  hasItem: 0
+  itemText: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

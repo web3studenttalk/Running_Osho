@@ -1798,7 +1798,7 @@ GameObject:
   - component: {fileID: 8287439688978714111}
   m_Layer: 6
   m_Name: Osho
-  m_TagString: Untagged
+  m_TagString: Racer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

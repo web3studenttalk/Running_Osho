@@ -298,7 +298,7 @@ GameObject:
   - component: {fileID: -2975456823888417955}
   m_Layer: 6
   m_Name: Kinsho
-  m_TagString: Untagged
+  m_TagString: Racer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
