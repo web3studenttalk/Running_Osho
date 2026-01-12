@@ -11,7 +11,7 @@ public class RaceGameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private GameObject startButtonObj;
     [SerializeField] private GameObject goalTextObj;
-    [SerializeField] private GameObject gameOverTextObj; // ゲームオーバー用
+    [SerializeField] private GameObject gameOverTextObj; 
     [SerializeField] private TextMeshProUGUI resultText;
 
     private bool isRacing = false;
@@ -20,15 +20,16 @@ public class RaceGameManager : MonoBehaviour
 
     void Awake() { if (Instance == null) Instance = this; else Destroy(gameObject); }
     void Start() { if (goalTextObj) goalTextObj.SetActive(false); if (gameOverTextObj) gameOverTextObj.SetActive(false); }
-    void Update() { if (isRacing) { currentTime += Time.deltaTime; timerText.text = FormatTime(currentTime); } }
+    void Update() { if (isRacing) { currentTime += Time.deltaTime; if(timerText) timerText.text = FormatTime(currentTime); } }
 
-    public void OnStartButton() { isRacing = true; currentTime = 0f; rankingList.Clear(); startButtonObj.SetActive(false); }
+    public void OnStartButton() { isRacing = true; currentTime = 0f; rankingList.Clear(); if(startButtonObj) startButtonObj.SetActive(false); }
     
+    // ゴール時の処理（名前を受け取る）
     public void ReportGoal(string name) {
         if (rankingList.Contains(name)) return;
         rankingList.Add(name);
         if (resultText) resultText.text += $"{rankingList.Count}位: {name} ({FormatTime(currentTime)})\n";
-        if (name.Contains("Player")) { isRacing = false; goalTextObj.SetActive(true); }
+        if (name.Contains("Player") || name.Contains("PlayerRig")) { isRacing = false; if(goalTextObj) goalTextObj.SetActive(true); }
     }
 
     public void GameOver() {

@@ -616,6 +616,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77d1a8205d9585041ac4dd3978b3566e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCBrain
+  startDelay: 0.5
+  thinkInterval: 0.5
+  forceChangeInterval: 10
 --- !u!54 &241967627
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -657,6 +660,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CourseProgressor
   rotationSmoothness: 10
   speedChangeSmoothness: 5
+  laneChangeSpeed: 5
+  targetHorizontalOffset: 0
 --- !u!4 &241967629
 Transform:
   m_ObjectHideFlags: 0
@@ -2308,6 +2313,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77d1a8205d9585041ac4dd3978b3566e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCBrain
+  startDelay: 0.5
+  thinkInterval: 0.5
+  forceChangeInterval: 10
 --- !u!54 &878101484
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2349,6 +2357,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CourseProgressor
   rotationSmoothness: 10
   speedChangeSmoothness: 5
+  laneChangeSpeed: 5
+  targetHorizontalOffset: 0
 --- !u!4 &878101486
 Transform:
   m_ObjectHideFlags: 0
@@ -2593,6 +2603,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77d1a8205d9585041ac4dd3978b3566e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCBrain
+  startDelay: 0.5
+  thinkInterval: 0.5
+  forceChangeInterval: 10
 --- !u!54 &1039394421
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2634,6 +2647,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CourseProgressor
   rotationSmoothness: 10
   speedChangeSmoothness: 5
+  laneChangeSpeed: 5
+  targetHorizontalOffset: 0
 --- !u!4 &1039394423
 Transform:
   m_ObjectHideFlags: 0
@@ -3482,6 +3497,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77d1a8205d9585041ac4dd3978b3566e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NPCBrain
+  startDelay: 0.5
+  thinkInterval: 0.5
+  forceChangeInterval: 10
 --- !u!54 &1636790745
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -3523,6 +3541,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CourseProgressor
   rotationSmoothness: 10
   speedChangeSmoothness: 5
+  laneChangeSpeed: 5
+  targetHorizontalOffset: 0
 --- !u!4 &1636790747
 Transform:
   m_ObjectHideFlags: 0
@@ -3731,19 +3751,19 @@ MonoBehaviour:
   startPiecePrefab: {fileID: 1239260873619544226, guid: 84c28d3c6795b9b4ab19bac147abf567, type: 3}
   middlePiecePrefabs:
   - piecePrefab: {fileID: 4280240282784406742, guid: 5e12abece82d86c4da40fe8cc7a5a31a, type: 3}
-    weight: 0
+    weight: 1
   - piecePrefab: {fileID: 7532981403811653149, guid: aa96e4e69ffcc594eabd4b65b46d8a83, type: 3}
-    weight: 0
+    weight: 1
   - piecePrefab: {fileID: 4434331101611837083, guid: eb01ecb4e866aeb49a78833f7ef47dd7, type: 3}
-    weight: 0
+    weight: 1
   - piecePrefab: {fileID: 2769112446758559364, guid: 45af1f6a828fbc74d8e331552dae7169, type: 3}
-    weight: 0
+    weight: 1
   - piecePrefab: {fileID: 7190429424563581976, guid: ff28c30934648ca47a37833147d8c8ac, type: 3}
-    weight: 0
+    weight: 1
   - piecePrefab: {fileID: 7707216507807145575, guid: 0af5214d182cb6f46ad86c9ab1edc625, type: 3}
-    weight: 0
+    weight: 1
   - piecePrefab: {fileID: 8322818403318280346, guid: 9d8e7d4ec1d962c4cbc64ea65046c023, type: 3}
-    weight: 0
+    weight: 1
   - piecePrefab: {fileID: 707616863661755411, guid: b682bfd6be923974aa9727a5fa412296, type: 3}
     weight: 1
   - piecePrefab: {fileID: 1239260873619544226, guid: 84c28d3c6795b9b4ab19bac147abf567, type: 3}
@@ -4214,6 +4234,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CourseProgressor
   rotationSmoothness: 10
   speedChangeSmoothness: 5
+  laneChangeSpeed: 5
+  targetHorizontalOffset: 0
 --- !u!4 &1865839522033105952
 Transform:
   m_ObjectHideFlags: 0
@@ -4289,6 +4311,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLaneController
   moveSpeed: 5
+  laneLimit: 2.5
 --- !u!114 &6004695169752475049
 MonoBehaviour:
   m_ObjectHideFlags: 0

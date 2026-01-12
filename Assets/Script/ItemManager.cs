@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-// クラスの外で定義することでエラー CS0246 を防ぎます
 public enum ItemType { None, Totsugeki, Nari, Kakoi, Kokaku }
 
 public class ItemManager : MonoBehaviour
@@ -24,28 +23,12 @@ public class ItemManager : MonoBehaviour
     private ItemType currentItem = ItemType.None;
     private Coroutine currentEffectCoroutine = null;
 
-    void Awake()
-    {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
-    }
+    void Awake() { if (Instance == null) Instance = this; else Destroy(gameObject); }
+    void Start() { UpdateUI(); if (itemButton) itemButton.onClick.AddListener(UseItem); }
 
-    void Start()
-    {
-        UpdateUI();
-        if (itemButton != null) itemButton.onClick.AddListener(UseItem);
-    }
+    public void GiveItemToPlayer(ItemType type) { if (currentItem == ItemType.None) { currentItem = type; UpdateUI(); } }
 
-    public void GiveItemToPlayer(ItemType type)
-    {
-        if (currentItem != ItemType.None) return;
-        currentItem = type;
-        UpdateUI();
-    }
-
-    // エラー CS0103 を解消：UseItemメソッド
-    public void UseItem()
-    {
+    public void UseItem() {
         if (currentItem == ItemType.None) return;
         if (currentEffectCoroutine != null) StopCoroutine(currentEffectCoroutine);
         currentEffectCoroutine = StartCoroutine(ApplyEffect(playerProgressor, currentItem));
@@ -53,11 +36,10 @@ public class ItemManager : MonoBehaviour
         UpdateUI();
     }
 
-    public IEnumerator ApplyEffect(CourseProgressor target, ItemType type)
-    {
+    // 引数を2つ（誰に、何を）にして public にすることでエラーを解消
+    public IEnumerator ApplyEffect(CourseProgressor target, ItemType type) {
         if (target == null) yield break;
-        switch (type)
-        {
+        switch (type) {
             case ItemType.Totsugeki: target.SetSpeedMultiplier(2.0f); yield return new WaitForSeconds(3.0f); break;
             case ItemType.Nari: target.PromotePiece(); yield return new WaitForSeconds(5.0f); break;
             case ItemType.Kakoi: target.SetSpeedMultiplier(1.2f); yield return new WaitForSeconds(5.0f); break;
@@ -65,28 +47,17 @@ public class ItemManager : MonoBehaviour
         }
         target.SetSpeedMultiplier(1.0f);
         target.DemotePiece();
-        currentEffectCoroutine = null;
     }
 
-    // エラー CS0103 を解消：UpdateUIメソッド
-    private void UpdateUI()
-    {
+    private void UpdateUI() {
         if (itemIconImage == null || itemButton == null) return;
-        if (currentItem == ItemType.None)
-        {
-            itemIconImage.sprite = iconNone;
-            itemButton.interactable = false;
-        }
-        else
-        {
-            itemButton.interactable = true;
-            switch (currentItem)
-            {
-                case ItemType.Totsugeki: itemIconImage.sprite = iconTotsugeki; break;
-                case ItemType.Nari:      itemIconImage.sprite = iconNari; break;
-                case ItemType.Kakoi:     itemIconImage.sprite = iconKakoi; break;
-                case ItemType.Kokaku:    itemIconImage.sprite = iconKokaku; break;
-            }
+        itemButton.interactable = (currentItem != ItemType.None);
+        switch (currentItem) {
+            case ItemType.Totsugeki: itemIconImage.sprite = iconTotsugeki; break;
+            case ItemType.Nari:      itemIconImage.sprite = iconNari; break;
+            case ItemType.Kakoi:     itemIconImage.sprite = iconKakoi; break;
+            case ItemType.Kokaku:    itemIconImage.sprite = iconKokaku; break;
+            default:                 itemIconImage.sprite = iconNone; break;
         }
     }
 }

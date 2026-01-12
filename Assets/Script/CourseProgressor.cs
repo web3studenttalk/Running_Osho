@@ -7,9 +7,9 @@ public class CourseProgressor : MonoBehaviour
     public static List<CourseProgressor> AllProgressors = new List<CourseProgressor>();
 
     [Header("走行設定")]
-    [SerializeField] private float rotationSmoothness = 10.0f;
+    [SerializeField] private float rotationSmoothness = 8.0f;
     [SerializeField] private float speedChangeSmoothness = 5.0f;
-    [SerializeField] private float laneChangeSpeed = 5.0f;
+    [SerializeField] private float laneChangeSpeed = 4.0f;
 
     private List<Transform> pathPoints;
     private float currentPathProgress = 0.0f;
@@ -25,134 +25,128 @@ public class CourseProgressor : MonoBehaviour
     public float targetHorizontalOffset = 0f;
     private float currentHorizontalOffset = 0f;
 
-    public void SetSpeedMultiplier(float multiplier) { itemSpeedMultiplier = multiplier; }
-    public void PromotePiece() { if (pieceData != null) { pieceData.Promote(); RecalculateSpeed(); } }
-    public void DemotePiece() { if (pieceData != null) { pieceData.Demote(); RecalculateSpeed(); } }
+    public void SetSpeedMultiplier(float m) { itemSpeedMultiplier = m; }
+    public void PromotePiece() { if (pieceData) pieceData.Promote(); }
+    public void DemotePiece() { if (pieceData) pieceData.Demote(); }
 
-    void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-        rb.isKinematic = false;
-        rb.useGravity = false;
-        if (!AllProgressors.Contains(this)) AllProgressors.Add(this);
+    void Awake() 
+    { 
+        rb = GetComponent<Rigidbody>(); 
+        if(!AllProgressors.Contains(this)) AllProgressors.Add(this); 
     }
+    
+    void OnDestroy() { AllProgressors.Remove(this); }
 
-    private void OnDestroy() { AllProgressors.Remove(this); }
-
-    // すり抜け判定（Is TriggerがONの場合）
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other) 
     {
         if (hasFinished || RaceGameManager.Instance == null || !RaceGameManager.Instance.IsRacing()) return;
-
-        // タグ「Racer」がエディタに登録されている必要があります
-        if (other.CompareTag("Racer"))
+        if (other.CompareTag("Racer")) 
         {
-            CourseProgressor otherProgressor = other.GetComponentInParent<CourseProgressor>();
-            if (otherProgressor == null || otherProgressor == this) return;
-            
-            // 自分の方が速ければ相手のコマを奪う
-            if (this.currentMoveSpeed >= otherProgressor.currentMoveSpeed) ExecuteCapture(otherProgressor);
+            CourseProgressor otherP = other.GetComponentInParent<CourseProgressor>();
+            if (otherP && otherP != this && currentMoveSpeed >= otherP.currentMoveSpeed) ExecuteCapture(otherP);
         }
     }
 
-    private void ExecuteCapture(CourseProgressor victim)
+    private void ExecuteCapture(CourseProgressor victim) 
     {
-        PlayerPieceData victimPiece = victim.GetComponentInChildren<PlayerPieceData>();
-        if (victimPiece == null) return;
-
-        if (victimPiece.pieceType == PieceType.Osho)
+        var vData = victim.GetComponentInChildren<PlayerPieceData>();
+        if (!vData) return;
+        if (vData.pieceType == PieceType.Osho && victim.GetComponent<PlayerLaneController>()) 
         {
-            if (victim.GetComponent<PlayerLaneController>() != null) RaceGameManager.Instance.GameOver(); 
-            return;
+            RaceGameManager.Instance.GameOver(); return;
         }
-
-        var myDeck = GetComponent<PieceDeckManager>();
-        if (myDeck != null) myDeck.AddCapturedPiece(victimPiece.myPrefab);
-
-        var victimDeck = victim.GetComponent<PieceDeckManager>();
-        if (victimDeck != null) victimDeck.LoseCurrentPiece();
-
-        var victimBrain = victim.GetComponent<NPCBrain>();
-        if (victimBrain != null) victimBrain.LoseCurrentPiece();
-
-        Debug.Log($"{gameObject.name} が {victim.gameObject.name} の駒を奪った！");
+        var vBrain = victim.GetComponent<NPCBrain>();
+        if (vBrain) vBrain.LoseCurrentPiece();
     }
 
-    public void RefreshPieceData(PlayerPieceData newPieceData)
-    {
-        pieceData = newPieceData;
-        if (pieceData != null) {
-            lastCheckedPiece = null;
-            targetMoveSpeed = pieceData.GetCurrentSpeed(TerrainType.Normal);
-            currentMoveSpeed = targetMoveSpeed;
-            enabled = true;
-        }
+    public void RefreshPieceData(PlayerPieceData d) 
+    { 
+        pieceData = d; 
+        if(d) 
+        { 
+            lastCheckedPiece = null; 
+            targetMoveSpeed = d.GetCurrentSpeed(TerrainType.Normal); 
+            currentMoveSpeed = targetMoveSpeed; 
+            enabled = true; 
+        } 
     }
+    
+    public void SetCourse(List<Transform> p) { pathPoints = p; }
 
-    public void SetCourse(List<Transform> fullPath) { pathPoints = fullPath; }
-
-    void FixedUpdate()
+    void FixedUpdate() 
     {
         if (pathPoints == null || pieceData == null || hasFinished) return;
-        if (RaceGameManager.Instance != null && !RaceGameManager.Instance.IsRacing()) { rb.linearVelocity = Vector3.zero; return; }
+        if (RaceGameManager.Instance && !RaceGameManager.Instance.IsRacing()) 
+        { 
+            rb.linearVelocity = Vector3.zero; 
+            return; 
+        }
 
-        int p1_index = Mathf.FloorToInt(currentPathProgress);
-        if (p1_index >= pathPoints.Count - 1) { FinishRace(); return; }
+        int idx = Mathf.FloorToInt(currentPathProgress);
+        if (idx >= pathPoints.Count - 1) { FinishRace(); return; }
 
-        TrackPiece currentPiece = pathPoints[p1_index].GetComponentInParent<TrackPiece>();
-        if (currentPiece != null && currentPiece != lastCheckedPiece)
-        {
-            targetMoveSpeed = pieceData.GetCurrentSpeed(currentPiece.terrainType);
-            lastCheckedPiece = currentPiece;
+        TrackPiece piece = pathPoints[idx].GetComponentInParent<TrackPiece>();
+        if (piece && piece != lastCheckedPiece) 
+        { 
+            targetMoveSpeed = pieceData.GetCurrentSpeed(piece.terrainType); 
+            lastCheckedPiece = piece; 
         }
 
         currentMoveSpeed = Mathf.Lerp(currentMoveSpeed, targetMoveSpeed, Time.fixedDeltaTime * speedChangeSmoothness);
-        float finalSpeed = currentMoveSpeed * itemSpeedMultiplier;
-
         currentHorizontalOffset = Mathf.Lerp(currentHorizontalOffset, targetHorizontalOffset, Time.fixedDeltaTime * laneChangeSpeed);
-        
-        Vector3 basePos = GetPointOnSpline(currentPathProgress);
-        Vector3 nextPos = GetPointOnSpline(currentPathProgress + 0.01f);
-        Vector3 forward = (nextPos - basePos).normalized;
-        Vector3 right = Vector3.Cross(Vector3.up, forward).normalized;
-        Vector3 targetWorldPos = basePos + (right * currentHorizontalOffset);
 
+        // --- Catmull-Rom スプラインによる滑らかな座標取得 ---
+        Vector3 basePos = GetPointOnSpline(currentPathProgress);
+        Vector3 futurePos = GetPointOnSpline(currentPathProgress + 0.1f);
+        
+        Vector3 fwd = (futurePos - basePos).normalized;
+        Vector3 rgt = Vector3.Cross(Vector3.up, fwd).normalized;
+        
+        Vector3 targetWorldPos = basePos + (rgt * currentHorizontalOffset);
         rb.linearVelocity = (targetWorldPos - rb.position) / Time.fixedDeltaTime;
 
-        float segmentLength = Vector3.Distance(pathPoints[p1_index].position, pathPoints[p1_index+1].position);
-        currentPathProgress += (segmentLength > 0.001f) ? (finalSpeed * Time.fixedDeltaTime) / segmentLength : 0f;
+        float segLen = Vector3.Distance(pathPoints[idx].position, pathPoints[idx+1].position);
+        currentPathProgress += (segLen > 0.001f) ? (currentMoveSpeed * itemSpeedMultiplier * Time.fixedDeltaTime) / segLen : 0f;
 
-        if (forward != Vector3.zero) 
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, Quaternion.LookRotation(forward), rotationSmoothness * Time.fixedDeltaTime));
-    }
-
-    // エラー CS0103 を解消：RecalculateSpeedメソッド
-    private void RecalculateSpeed()
-    {
-        if (pathPoints == null || pieceData == null) return;
-        int i = Mathf.FloorToInt(currentPathProgress);
-        if (i < pathPoints.Count) {
-            var p = pathPoints[i].GetComponentInParent<TrackPiece>();
-            if (p != null) targetMoveSpeed = pieceData.GetCurrentSpeed(p.terrainType);
+        if (fwd != Vector3.zero) 
+        {
+            Quaternion targetRot = Quaternion.LookRotation(new Vector3(fwd.x, 0, fwd.z));
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, rotationSmoothness * Time.fixedDeltaTime));
         }
     }
 
-    // エラー CS0111 を解消：FinishRaceメソッドを統合
-    private void FinishRace()
+    private void FinishRace() 
     {
-        if (hasFinished) return;
+        if (hasFinished) return; 
         hasFinished = true;
-        rb.linearVelocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero; 
         rb.isKinematic = true;
-        if (RaceGameManager.Instance != null) RaceGameManager.Instance.ReportGoal(gameObject.name);
+        if (RaceGameManager.Instance) RaceGameManager.Instance.ReportGoal(gameObject.name);
     }
 
-    private Vector3 GetPointOnSpline(float p)
+    private Vector3 GetPointOnSpline(float p) 
     {
-        int i = Mathf.Clamp(Mathf.FloorToInt(p), 0, pathPoints.Count-1);
-        int j = Mathf.Clamp(i+1, 0, pathPoints.Count-1);
-        return Vector3.Lerp(pathPoints[i].position, pathPoints[j].position, p - Mathf.FloorToInt(p));
+        int p1_index = Mathf.FloorToInt(p);
+        int p0_index = Mathf.Clamp(p1_index - 1, 0, pathPoints.Count - 1);
+        int p2_index = Mathf.Clamp(p1_index + 1, 0, pathPoints.Count - 1);
+        int p3_index = Mathf.Clamp(p1_index + 2, 0, pathPoints.Count - 1);
+        p1_index = Mathf.Clamp(p1_index, 0, pathPoints.Count - 1);
+
+        float t = p - Mathf.FloorToInt(p);
+
+        Vector3 p0 = pathPoints[p0_index].position;
+        Vector3 p1 = pathPoints[p1_index].position;
+        Vector3 p2 = pathPoints[p2_index].position;
+        Vector3 p3 = pathPoints[p3_index].position;
+
+        return 0.5f * (
+            (2f * p1) +
+            (-p0 + p2) * t +
+            (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t +
+            (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t
+        );
     }
 
+    // ▼ これが欠けていたためエラーになっていました。必ず含めてください ▼
     public TerrainType GetCurrentTerrainType() => (lastCheckedPiece != null) ? lastCheckedPiece.terrainType : TerrainType.Normal;
 }
